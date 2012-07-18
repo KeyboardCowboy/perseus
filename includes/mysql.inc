@@ -70,9 +70,18 @@ class MySQL {
   /**
    * Insert data into the database.
    */
-  public function insert() {
-
+  public function insert($table, $data) {
+    array_walk($data, 'mysqli_escape_string');
+    $query = "INSERT INTO $table (" . implode(',', array_keys($data)) . ") VALUES ('" . implode("','", $data) . "')";
+  
+    $result = mysqli_query($this->conn, $query);
+    if (mysqli_error($this->conn) {
+      print mysqli_errno();
+    }
+    
+    return mysqli_affected_rows();
   }
+  
 
   /**
    * Parse select results into a usable array.
