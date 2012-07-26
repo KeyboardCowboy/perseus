@@ -4,14 +4,13 @@
  * MySQL Database abstraction class.
  */
 class MySQL {
-  private $prefix = 'skynotec';
   private $database;
 
   /**
    * Constructor
    */
   public function MySQL($db_name) {
-    $this->database = "{$this->prefix}_{$db_name}";
+    $this->database = check_plain($db_name);
 
     try {
       $this->connect();
@@ -25,15 +24,14 @@ class MySQL {
    * Connect to the database.
    */
   private function connect() {
-    // Load the database connection creds.
-    require_once(HOME . '/private/database.inc');
+    global $system;
+
+    $creds = $system->db($this->database);
 
     // Make sure we have credentials for the database.
-    if (!isset($db[$this->database])) {
+    if (empty($creds)) {
       throw new Exception('Unable to connect to MySQL.  Missing credentials.');
     }
-
-    $creds = $db[$this->database];
 
     // Attempt the connection.
     $this->conn = mysqli_connect($creds['host'], $creds['user'], $creds['pass'], $this->database);
@@ -54,14 +52,15 @@ class MySQL {
     // @todo Integrate ORs as well.
     if (!empty($conds)) {
       // Sanitize the conditionals.
-      array_walk($conds, 'mysqli_escape_string');
+      //array_walk($conds, 'mysqli_escape_string');
       $query .= ' WHERE ';
       $query .= implode(' AND ', $conds);
     }
 
     $result = mysqli_query($this->conn, $query);
     if (mysqli_error($this->conn)) {
-      print mysqli_errno();
+      System::setMessage('MySQL error (' . mysqli_errno($this->conn) . '): ' . mysqli_error($this->conn));
+      return array();
     }
 
     return $this->parseSqlResult($result);
@@ -71,17 +70,17 @@ class MySQL {
    * Insert data into the database.
    */
   public function insert($table, $data) {
-    array_walk($data, 'mysqli_escape_string');
+    //array_walk($data, 'mysqli_escape_string');
     $query = "INSERT INTO $table (" . implode(',', array_keys($data)) . ") VALUES ('" . implode("','", $data) . "')";
-  
+
     $result = mysqli_query($this->conn, $query);
-    if (mysqli_error($this->conn) {
-      print mysqli_errno();
+    if (mysqli_error($this->conn)) {
+      System::setMessage('MySQl error: ' . mysqli_errno($this->conn));
     }
-    
-    return mysqli_affected_rows();
+
+    return mysqli_affected_rows($this->conn);
   }
-  
+
 
   /**
    * Parse select results into a usable array.
