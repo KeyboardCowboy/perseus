@@ -1,16 +1,20 @@
 <?php
-
-define('SYSTEM_NOTICE',  1);
-define('SYSTEM_WARNING', 2);
-define('SYSTEM_ERROR',   3);
-
 /**
  * @file
  * Class to manage system variables and processes.
  */
+define('SYSTEM_NOTICE',  1);
+define('SYSTEM_WARNING', 2);
+define('SYSTEM_ERROR',   3);
+
 class System {
-  public $docroot;
-  public $proot;
+  // The server path to the root of the website.
+  private $siteroot;
+
+  // Registered theme locations
+  private $themes;
+
+  // Define readable error codes
   public $error_codes = array(
     SYSTEM_NOTICE =>  'Notice',
     SYSTEM_WARNING => 'Warning',
@@ -19,25 +23,39 @@ class System {
 
   /**
    * Constructor
+   *
+   * @param $siteroot
+   *   The server path to the root of the website.
    */
-  public function System() {
+  public function System($siteroot) {
+    $this->siteroot = $siteroot;
+
     // Instantiate system messages.
     if (!isset($_SESSION['messages'])) {
       $_SESSION['messages'] = array();
     }
 
-    // Set base vars.
-    $this->docroot = $_SERVER['DOCUMENT_ROOT'];
-    $this->proot = __DIR__;
-
-    // Load the system vars.
     try {
+      // Load the system vars.
       $vars = $this->init();
       foreach ($vars as $name => $val) {
         $this->$name = $val;
       }
+
+      // Register the base theme directory.
+      $this->registerTheme();
     }
     catch (Exception $e) {$this->handleException($e);}
+  }
+
+  /**
+   * Load additional services on request,
+   */
+  public function load($service) {
+    try {
+      System::fileRequire("services/$service.class.php");
+    }
+    catch(Exception $e) {System::handleException($e);}
   }
 
   /**
@@ -79,10 +97,13 @@ class System {
    * Include a file.
    */
   static function fileInclude($path) {
-    $file = __DIR__ . "/$path";
+    $file = PROOT . "/$path";
     if (file_exists($file)) {
       include $file;
       return $file;
+    }
+    else {
+      throw new Exception("Unable to locate file at $file.", SYSTEM_WARNING);
     }
   }
 
@@ -90,25 +111,28 @@ class System {
    * Require a file.
    */
   static function fileRequire($path) {
-    $file = __DIR__ . "/$path";
+    $file = PROOT . "/$path";
     if (is_file($file)) {
       require_once $file;
       return $file;
+    }
+    else {
+      throw new Exception("Unable to locate file at $file.", SYSTEM_ERROR);
     }
   }
 
   /**
    * Exception Handler
    */
-  public function handleException($e) {
-    $this->setMessage($e->getMessage(), $e->getCode());
+  static function handleException($e) {
+    System::setMessage($e->getMessage(), $e->getCode());
   }
 
   /**
    * Initialize the system variables.
    */
   private function init($type = 'vars') {
-    $file = DOCROOT . '/perseus.settings.php';
+    $file = $this->siteroot . '/perseus.settings.php';
     $init = array();
 
     if (file_exists($file)) {
@@ -133,10 +157,26 @@ class System {
   }
 
   /**
+   * Register a theme.
+   *
+   * @param $loc
+   *   The location of the theme directory relative to docroot.
+   */
+  static function registerTheme($loc = NULL) {
+    $loc = ($loc ? DOCROOT . "/$loc" : PROOT . '/theme');
+
+    if (file_exists($loc)) {
+      $this->themes[] = $loc;
+    }
+    else {
+      System::setMessage('Unable to locate theme at $loc.', SYSTEM_WARNING);
+    }
+  }
+
+  /**
    * Get a variable from the system settings.
    */
   public function val($var, $default = NULL) {
     return (property_exists($this, $var) ? $this->$var : $default);
   }
-
 }

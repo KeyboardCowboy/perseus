@@ -12,7 +12,7 @@ class Debug {
   /**
    * Dump a variable.
    */
-  public function dump($var) {
+  static function dump($var) {
     print '<pre>' . htmlentities(print_r($var, 1)) . '</pre>';
   }
 }
