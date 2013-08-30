@@ -43,7 +43,7 @@ class System {
   /**
    * Set a status message.
    */
-  public function setMessage($msg, $type = 'info') {
+  static function setMessage($msg, $type = 'info') {
     $_SESSION['messages'][$type][] = $msg;
   }
 
