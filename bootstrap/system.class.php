@@ -14,13 +14,6 @@ class System {
   // Registered theme locations
   private $themes;
 
-  // Define readable error codes
-  public $error_codes = array(
-    SYSTEM_NOTICE =>  'Notice',
-    SYSTEM_WARNING => 'Warning',
-    SYSTEM_ERROR =>   'Error',
-  );
-
   /**
    * Constructor
    *
@@ -43,7 +36,7 @@ class System {
       }
 
       // Register the base theme directory.
-      $this->registerTheme();
+      $this->registerThemes();
     }
     catch (Exception $e) {$this->handleException($e);}
   }
@@ -94,6 +87,19 @@ class System {
   }
 
   /**
+   * Return error codes.
+   */
+  static function errorCodes($code = NULL) {
+    $codes = array(
+      SYSTEM_NOTICE =>  'notice',
+      SYSTEM_WARNING => 'warning',
+      SYSTEM_ERROR =>   'error',
+    );
+
+    return ($code ? $codes[$code] : $codes);
+  }
+
+  /**
    * Include a file.
    */
   static function fileInclude($path) {
@@ -132,7 +138,7 @@ class System {
    * Initialize the system variables.
    */
   private function init($type = 'vars') {
-    $file = $this->siteroot . '/perseus.settings.php';
+    $file = $this->siteroot . '/settings/perseus.php';
     $init = array();
 
     if (file_exists($file)) {
@@ -141,7 +147,7 @@ class System {
       $init['db'] = $db;
     }
     else {
-      throw new Exception('Unable to load perseus settings.', SYSTEM_ERROR);
+      throw new Exception('Unable to load perseus settings at ' . $file . '.', SYSTEM_ERROR);
     }
 
     return ($type ? $init[$type] : $init);
@@ -162,15 +168,72 @@ class System {
    * @param $loc
    *   The location of the theme directory relative to docroot.
    */
-  static function registerTheme($loc = NULL) {
-    $loc = ($loc ? DOCROOT . "/$loc" : PROOT . '/theme');
+  public function registerThemes() {
+    // First, the default theme
+    $this->themes[] = PROOT . '/theme';
 
-    if (file_exists($loc)) {
-      $this->themes[] = $loc;
+    // Next, site overrides
+    $site_theme = $this->siteroot . '/theme';
+    if (file_exists($site_theme)) {
+      $this->themes[] = $site_theme;
     }
-    else {
-      System::setMessage('Unable to locate theme at $loc.', SYSTEM_WARNING);
+  }
+
+  /**
+   * Theme an item.
+   */
+  public function theme($hook, $vars = array()) {
+    // Call processors for each implementation.
+    foreach ($this->themes as $theme) {
+      $processor_file = "$theme/processors/{$hook}.inc";
+      if (file_exists($processor_file)) {
+        System::themeProcessVars($processor_file, $vars);
+      }
     }
+
+    // Look for a template starting with the most recently registered theme.
+    foreach (array_reverse($this->themes) as $theme) {
+      $template_file = "$theme/templates/{$hook}.tpl.php";
+      if (file_exists($template_file)) {
+        print System::themeRenderTemplate($template_file, $vars);
+        return;
+      }
+    }
+
+    // If no template, look for a function.
+    $func = "theme_{$hook}";
+    foreach (array_reverse($this->themes) as $theme) {
+      include('theme/themes.inc');
+      if (function_exists($func)) {
+        print $func($vars);
+        return;
+      }
+    }
+
+    // Still nothing?
+    print '';
+  }
+
+  /**
+   * Process variables for a theme.
+   *
+   * Keep this in a separate function to isolate variable scope.
+   */
+  static function themeProcessVars($file, &$vars) {
+    include($file);
+  }
+
+  /**
+   * Render a system default template, which is essentially a PHP template.
+   *
+   * Borrowed from Drupal.
+   * http://api.drupal.org/api/drupal/includes%21theme.inc/function/theme_render_template/7
+   */
+  static function themeRenderTemplate($template_file, $variables) {
+    extract($variables, EXTR_SKIP); // Extract the variables to a local namespace
+    ob_start(); // Start output buffering
+    include($template_file); // Include the template file
+    return ob_get_clean(); // End buffering and return its contents
   }
 
   /**

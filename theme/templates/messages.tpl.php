@@ -6,7 +6,8 @@
 ?>
 <div id="messages">
   <?php foreach ($messages as $type => $ms) : ?>
-  <ul class="message-type message-type-<?php print $type; ?>">
+  <h2 class="hide"><?php print ucwords(System::errorCodes($type)) . " Messages"; ?></h2>
+  <ul class="<?php print System::errorCodes($type); ?>">
     <?php foreach ($ms as $msg) : ?>
     <li><?php print $msg; ?></li>
     <?php endforeach; ?>
