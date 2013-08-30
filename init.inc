@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * KC Tools Library Bootstrapper.
+ * Perseus Library Bootstrapper.
  */
 define('DOCROOT', $_SERVER['DOCUMENT_ROOT']);
 
@@ -32,6 +32,6 @@ function system_start() {
   global $system;
 
   // Bootstrap basic system tools and variables.
-  require_once(DOCROOT . '/kctools/classes/system.class.inc');
+  require_once(__DIR__ . '/classes/system.class.inc');
   $system = new System();
 }

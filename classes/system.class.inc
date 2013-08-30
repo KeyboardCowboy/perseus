@@ -1,10 +1,21 @@
 <?php
+
+define('SYSTEM_NOTICE',  1);
+define('SYSTEM_WARNING', 2);
+define('SYSTEM_ERROR',   3);
+
 /**
  * @file
  * Class to manage system variables and processes.
  */
 class System {
   public $docroot;
+  public $proot;
+  public $error_codes = array(
+    SYSTEM_NOTICE =>  'Notice',
+    SYSTEM_WARNING => 'Warning',
+    SYSTEM_ERROR =>   'Error',
+  );
 
   /**
    * Constructor
@@ -17,12 +28,16 @@ class System {
 
     // Set base vars.
     $this->docroot = $_SERVER['DOCUMENT_ROOT'];
+    $this->proot = __DIR__;
 
     // Load the system vars.
-    $vars = $this->init();
-    foreach ($vars as $name => $val) {
-      $this->$name = $val;
+    try {
+      $vars = $this->init();
+      foreach ($vars as $name => $val) {
+        $this->$name = $val;
+      }
     }
+    catch (Exception $e) {$this->handleException($e);}
   }
 
   /**
@@ -35,7 +50,7 @@ class System {
   /**
    * Retrieve a message.
    */
-  public function getMessages($type = NULL, $purge = TRUE) {
+  static function getMessages($type = NULL, $purge = TRUE) {
     if (isset($type)) {
       $messages = $_SESSION['messages'][$type];
       if ($purge) {
@@ -63,8 +78,8 @@ class System {
   /**
    * Include a file.
    */
-  public function fileInclude($path) {
-    $file = DOCROOT . "/kctools/$path";
+  static function fileInclude($path) {
+    $file = __DIR__ . "/$path";
     if (file_exists($file)) {
       include $file;
       return $file;
@@ -74,8 +89,8 @@ class System {
   /**
    * Require a file.
    */
-  public function fileRequire($path) {
-    $file = DOCROOT . "/kctools/$path";
+  static function fileRequire($path) {
+    $file = __DIR__ . "/$path";
     if (is_file($file)) {
       require_once $file;
       return $file;
@@ -83,13 +98,27 @@ class System {
   }
 
   /**
+   * Exception Handler
+   */
+  public function handleException($e) {
+    $this->setMessage($e->getMessage(), $e->getCode());
+  }
+
+  /**
    * Initialize the system variables.
    */
   private function init($type = 'vars') {
-    include(DOCROOT . '/kctools/private/kctools.settings.php');
+    $file = DOCROOT . '/perseus.settings.php';
+    $init = array();
 
-    $init['vars'] = $vars;
-    $init['db'] = $db;
+    if (file_exists($file)) {
+      include($file);
+      $init['vars'] = $vars;
+      $init['db'] = $db;
+    }
+    else {
+      throw new Exception('Unable to load perseus settings.', SYSTEM_ERROR);
+    }
 
     return ($type ? $init[$type] : $init);
   }
