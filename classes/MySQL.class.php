@@ -1,4 +1,6 @@
 <?php
+namespace Perseus;
+
 /**
  * @file
  * MySQL Database abstraction class.

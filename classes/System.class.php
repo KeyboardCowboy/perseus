@@ -1,4 +1,6 @@
 <?php
+namespace Perseus;
+
 /**
  * @file
  * Class to manage system variables and processes.
@@ -9,10 +11,10 @@ define('SYSTEM_ERROR',   3);
 
 class System {
   // The server path to the root of the website.
-  private $siteroot;
+  protected $siteroot;
 
   // Registered theme locations
-  private $themes;
+  protected $themes = array();
 
   /**
    * Constructor
@@ -20,7 +22,7 @@ class System {
    * @param $siteroot
    *   The server path to the root of the website.
    */
-  public function System($siteroot) {
+  public function __construct($siteroot) {
     $this->siteroot = $siteroot;
 
     // Instantiate system messages.
@@ -35,20 +37,10 @@ class System {
         $this->$name = $val;
       }
 
-      // Register the base theme directory.
+      // Register theme directories.
       $this->registerThemes();
     }
     catch (Exception $e) {$this->handleException($e);}
-  }
-
-  /**
-   * Load additional services on request,
-   */
-  public function load($service) {
-    try {
-      System::fileRequire("services/$service.class.php");
-    }
-    catch(Exception $e) {System::handleException($e);}
   }
 
   /**
@@ -100,6 +92,22 @@ class System {
   }
 
   /**
+   * Retrieve an object from the Session var.
+   */
+  protected function fetchObject($name) {
+    if (!empty($_SESSION['perseus']['object'][$name])) {
+      return $_SESSION['perseus']['object'][$name];
+    }
+  }
+
+  /**
+   * Retrieve an object from the Session var.
+   */
+  protected function storeObject($obj, $name) {
+    $_SESSION['perseus']['object'][$name] = $obj;
+  }
+
+  /**
    * Include a file.
    */
   static function fileInclude($path) {
@@ -131,7 +139,10 @@ class System {
    * Exception Handler
    */
   static function handleException($e) {
-    System::setMessage($e->getMessage(), $e->getCode());
+    $code = $e->getCode();
+    $code = (is_numeric($code) && $code > 0 ? $code : 1);
+
+    System::setMessage($e->getMessage(), $code);
   }
 
   /**
@@ -168,7 +179,7 @@ class System {
    * @param $loc
    *   The location of the theme directory relative to docroot.
    */
-  public function registerThemes() {
+  private function registerThemes() {
     // First, the default theme
     $this->themes[] = PROOT . '/theme';
 

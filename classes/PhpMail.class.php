@@ -1,4 +1,6 @@
 <?php
+namespace Perseus;
+
 /**
  * @file
  * PHP Mailing class.

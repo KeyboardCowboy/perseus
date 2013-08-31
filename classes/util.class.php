@@ -1,4 +1,6 @@
 <?php
+namespace Perseus;
+
 /**
  * @file
  * PHP Utility functionality.  Mostly minor static classes.
@@ -410,4 +412,3 @@ class Util {
     Debug::dump($var);
   }
 }
-

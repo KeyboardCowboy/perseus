@@ -1,4 +1,6 @@
 <?php
+namespace Perseus;
+
 /**
  * @file
  * Debugging and logging class.
@@ -13,6 +15,6 @@ class Debug {
    * Dump a variable.
    */
   static function dump($var) {
-    print '<pre>' . htmlentities(print_r($var, 1)) . '</pre>';
+    print '<pre>' . print_r($var, 1) . '</pre>';
   }
 }

@@ -3,4 +3,4 @@
  * @file
  * Prepare messages.
  */
-$vars['messages'] = System::getMessages();
+$vars['messages'] = \Perseus\System::getMessages();

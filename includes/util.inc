@@ -403,6 +403,67 @@ function url($path = NULL, array $options = array()) {
 /**
  * Alias for debug var dump.
  */
-function kcd($var) {
-  Debug::dump($var);
+function pd($var) {
+  \Perseus\Debug::dump($var);
+}
+
+/**
+ * Generate a unique, machine-safe ID.
+ *
+ * Borrowed from Drupal.
+ *
+ */
+function unique_id($string) {
+  static $seen_ids_init;
+
+  if (!isset($seen_ids_init)) {
+    if (empty($_POST['ajax_html_ids'])) {
+      $seen_ids_init = array();
+    }
+    else {
+      $ajax_html_ids = explode(' ', $_POST['ajax_html_ids']);
+      foreach ($ajax_html_ids as $seen_id) {
+        // We rely on '--' being used solely for separating a base id from the
+        // counter, which this function ensures when returning an id.
+        $parts = explode('--', $seen_id, 2);
+        if (!empty($parts[1]) && is_numeric($parts[1])) {
+          list($seen_id, $i) = $parts;
+        }
+        else {
+          $i = 1;
+        }
+        if (!isset($seen_ids_init[$seen_id]) || ($i > $seen_ids_init[$seen_id])) {
+          $seen_ids_init[$seen_id] = $i;
+        }
+      }
+    }
+  }
+
+  static $seen_ids;
+
+  $id = strtr(strtolower($string), array(' ' => '-', '_' => '-', '[' => '-', ']' => ''));
+
+  // As defined in http://www.w3.org/TR/html4/types.html#type-name, HTML IDs can
+  // only contain letters, digits ([0-9]), hyphens ("-"), underscores ("_"),
+  // colons (":"), and periods ("."). We strip out any character not in that
+  // list. Note that the CSS spec doesn't allow colons or periods in identifiers
+  // (http://www.w3.org/TR/CSS21/syndata.html#characters), so we strip those two
+  // characters as well.
+  $id = preg_replace('/[^A-Za-z0-9\-_]/', '', $id);
+
+  // Removing multiple consecutive hyphens.
+  $id = preg_replace('/\-+/', '-', $id);
+  // Ensure IDs are unique by appending a counter after the first occurrence.
+  // The counter needs to be appended with a delimiter that does not exist in
+  // the base ID. Requiring a unique delimiter helps ensure that we really do
+  // return unique IDs and also helps us re-create the $seen_ids array during
+  // Ajax requests.
+  if (isset($seen_ids[$id])) {
+    $id = $id . '--' . ++$seen_ids[$id];
+  }
+  else {
+    $seen_ids[$id] = 1;
+  }
+
+  return $id;
 }
