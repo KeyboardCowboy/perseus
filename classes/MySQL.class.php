@@ -6,40 +6,37 @@ namespace Perseus;
  * MySQL Database abstraction class.
  */
 class MySQL {
-  private $database;
+  private $conn;
 
   /**
    * Constructor
    */
-  public function MySQL($db_name) {
-    $this->database = check_plain($db_name);
-
+  public function __construct($creds) {
     try {
-      $this->connect();
+      $this->connect($creds);
     }
-    catch(Exception $e) {
-      print $e->getMessage();
-    }
+    catch(Exception $e) {System::handleException($e);}
   }
 
   /**
    * Connect to the database.
    */
-  private function connect() {
-    global $system;
-
-    $creds = $system->db($this->database);
-
-    // Make sure we have credentials for the database.
-    if (empty($creds)) {
-      throw new Exception('Unable to connect to MySQL.  Missing credentials.');
-    }
-
+  private function connect($creds) {
     // Attempt the connection.
-    $this->conn = mysqli_connect($creds['host'], $creds['user'], $creds['pass'], $this->database);
+    $conn = mysqli_connect($creds['host'], $creds['user'], $creds['pass'], $creds['name']);
     if ($err = mysqli_connect_error()) {
-      throw new Exception("Error connecting to MySQL.  {$err}. " . mysqli_errno($this->conn));
+      throw new Exception("Error connecting to MySQL.  {$err}. " . mysqli_errno($this->conn), SYSTEM_ERROR);
     }
+    else {
+      $this->conn = $conn;
+    }
+  }
+
+  /**
+   * Determine whether this connection has been established.
+   */
+  public function isConnected() {
+    return (is_object($this->conn));
   }
 
   /**
@@ -61,7 +58,7 @@ class MySQL {
 
     $result = mysqli_query($this->conn, $query);
     if (mysqli_error($this->conn)) {
-      System::setMessage('MySQL error (' . mysqli_errno($this->conn) . '): ' . mysqli_error($this->conn));
+      System::setMessage('MySQL error[' . mysqli_errno($this->conn) . ']: ' . mysqli_error($this->conn));
       return array();
     }
 
@@ -77,12 +74,26 @@ class MySQL {
 
     $result = mysqli_query($this->conn, $query);
     if (mysqli_error($this->conn)) {
-      System::setMessage('MySQl error: ' . mysqli_errno($this->conn));
+      System::setMessage('MySQL error[' . mysqli_errno($this->conn) . ']: ' . mysqli_error($this->conn));
     }
 
     return mysqli_affected_rows($this->conn);
   }
 
+  /**
+   * Generic SQL query
+   */
+  public function query($query) {
+    try {
+      $result = mysqli_query($this->conn, $query);
+      if (mysqli_error($this->conn)) {
+        System::setMessage('MySQL error[' . mysqli_errno($this->conn) . ']: ' . mysqli_error($this->conn));
+      }
+    }
+    catch(Exception $e) {System::handleException($e);}
+
+    return mysqli_affected_rows($this->conn);
+  }
 
   /**
    * Parse select results into a usable array.

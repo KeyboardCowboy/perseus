@@ -10,6 +10,9 @@ define('SYSTEM_WARNING', 2);
 define('SYSTEM_ERROR',   3);
 
 class System {
+  // Database connctions
+  private $db = array();
+
   // The server path to the root of the website.
   protected $siteroot;
 
@@ -46,7 +49,7 @@ class System {
   /**
    * Set a status message.
    */
-  static function setMessage($msg, $type = 'info') {
+  static function setMessage($msg, $type = SYSTEM_NOTICE) {
     $_SESSION['messages'][$type][] = $msg;
   }
 
@@ -68,14 +71,6 @@ class System {
     }
 
     return (array)$messages;
-  }
-
-  /**
-   * Get DB creds.
-   */
-  public function db($dbname) {
-    $db = $this->init('db');
-    return (isset($db[$dbname]) ? $db[$dbname] : array());
   }
 
   /**
@@ -136,6 +131,60 @@ class System {
   }
 
   /**
+   * Flood Controler.  Registers an event into the flood log.
+   */
+  public function floodRegisterEvent($name, $window = 3600, $identifier = NULL) {
+    if (!isset($identifier)) {
+      $identifier = $_SERVER['REMOTE_ADDR'];
+    }
+
+    // Prepare the data
+    $data = array(
+      'event' => $name,
+      'identifier' => $identifier,
+      'timestamp' => time(),
+      'expiration' => time() + $window,
+    );
+
+    // Requires a MySQL connection.
+    try {
+      $sql = $this->db();
+      $sql->insert('flood', $data);
+    }
+    catch (Exception $e) {$this->handleException($e);}
+  }
+
+  /**
+   * Get an instance of the database object.
+   */
+  public function db($database = 'default') {
+    try {
+      if (isset($this->db[$database]) && is_object($this->db[$database])) {
+        return $this->db[$database];
+      }
+      else {
+        // Get the creds.
+        $creds = $this->init('db');
+        if (isset($creds[$database])) {
+          $db = new MySQL($creds[$database]);
+
+          if ($db->isConnected()) {
+            $this->db[$database] = $db;
+            return $this->db[$database];
+          }
+          else {
+            throw new Exception('Unable to load database.  Connection error.', SYSTEM_ERROR);
+          }
+        }
+        else {
+          throw new Exception('Unable to load database.  Credentials not provided.', SYSTEM_ERROR);
+        }
+      }
+    }
+    catch (Exception $e) {$this->handleException($e);}
+  }
+
+  /**
    * Exception Handler
    */
   static function handleException($e) {
@@ -149,7 +198,7 @@ class System {
    * Initialize the system variables.
    */
   private function init($type = 'vars') {
-    $file = $this->siteroot . '/settings/perseus.php';
+    $file = DOCROOT . '/settings/perseus.php';
     $init = array();
 
     if (file_exists($file)) {
@@ -254,3 +303,60 @@ class System {
     return (property_exists($this, $var) ? $this->$var : $default);
   }
 }
+
+/**
+ * Installer Class
+ */
+class SystemInstaller extends Installer implements InstallerInterface {
+  // Register installation procedures
+  private $install = array('flood');
+
+  /**
+   * Constructor
+   */
+  public function __construct($system) {
+    parent::__construct($system);
+  }
+
+  /**
+   * Install/configure the necessary parts for the tool to function properly.
+   */
+  public function install($do = array()) {
+    try {
+      $do = (array) $do;
+
+      if (empty($do)) {
+        $do = $this->install;
+      }
+
+      // Run each installation procedure.
+      foreach ($do as $install) {
+        switch ($install) {
+          case 'flood':
+            $this->createTable('flood');
+            break;
+        }
+      }
+    }
+    catch(Exception $e){System::handleException($e);}
+  }
+
+  /**
+   * Define the database schemas
+   */
+  public function schema($table) {
+    $schema['flood'] = "CREATE TABLE IF NOT EXISTS flood (
+      fid int(11) NOT NULL AUTO_INCREMENT COMMENT 'Unique flood event ID.',
+      event varchar(64) NOT NULL DEFAULT '' COMMENT 'Name of event (e.g. contact).',
+      identifier varchar(128) NOT NULL DEFAULT '' COMMENT 'Identifier of the visitor, such as an IP address or hostname.',
+      timestamp int(11) NOT NULL DEFAULT '0' COMMENT 'Timestamp of the event.',
+      expiration int(11) NOT NULL DEFAULT '0' COMMENT 'Expiration timestamp. Expired events are purged on cron run.',
+      PRIMARY KEY (fid),
+      KEY allow (event,identifier,timestamp),
+      KEY purge (expiration)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Flood controls the threshold of events, such as the...' AUTO_INCREMENT=1 ;";
+
+    return (isset($schema[$table]) ? $schema[$table] : '');
+  }
+}
+

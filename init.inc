@@ -14,6 +14,7 @@ require_once(PROOT . '/classes/System.class.php');
 // Bootstrap common utilities required by other bootstrap phases.
 Perseus\System::fileRequire('includes/util.inc');
 
+// Register autoloader
 function __autoload($class) {
   $parts = explode('\\', $class);
   include_once 'classes/' . end($parts) . '.class.php';

@@ -14,7 +14,8 @@ $vars = array();
 /**
  * Configure databases.
  */
-$db['dbname'] = array(
+$db['default'] = array(
+  'name' => 'perseus',
   'host' => 'localhost',
   'user' => '',
   'pass' => '',
