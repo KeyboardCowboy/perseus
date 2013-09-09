@@ -103,12 +103,14 @@ class CSV {
   /**
    * Get all values from a given column.
    *
+   * @param $col
+   *   The name of the column to retrieve.
    * @param $distinct
    *   Return only distinct values.
    * @param $index
    *   Create a unique index for each item.
    */
-  public function getCol($col, $distinct = FALSE, $index = FALSE) {
+  public function getColumn($col, $distinct = FALSE, $index = FALSE) {
     $ret = array();
 
     try {
@@ -118,13 +120,14 @@ class CSV {
 
       // Cycle through the data to pull out the values from this col.
       foreach ($this->data as $ri => $row) {
-        if (!$distinct || !in_array($row[$col], $ret)) {
+        if (!empty($row[$col]) && (!$distinct || !in_array($row[$col], $ret))) {
           $ret[] = $row[$col];
         }
       }
     }
     catch(Exception $e) {System::handleException($e);}
 
+    // Create an index if requested
     if ($index) {
       $this->index[$col] = $this->indexValues($ret);
       return $this->index[$col];
@@ -165,6 +168,13 @@ class CSV {
     }
 
     return $new_value;
+  }
+
+  /**
+   * Retrieve an index.
+   */
+  public function getIndex($name) {
+    return (isset($this->index[$name]) ? $this->index[$name] : array());
   }
 }
 

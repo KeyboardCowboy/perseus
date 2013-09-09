@@ -35,10 +35,7 @@ class System {
 
     try {
       // Load the system vars.
-      $vars = $this->init();
-      foreach ($vars as $name => $val) {
-        $this->$name = $val;
-      }
+      $this->vars = $this->init('vars');
 
       // Register theme directories.
       $this->registerThemes();
@@ -198,7 +195,7 @@ class System {
    * Initialize the system variables.
    */
   private function init($type = 'vars') {
-    $file = DOCROOT . '/settings/perseus.php';
+    $file = $this->siteroot . '/settings/perseus.php';
     $init = array();
 
     if (file_exists($file)) {
@@ -254,24 +251,37 @@ class System {
     // Look for a template starting with the most recently registered theme.
     foreach (array_reverse($this->themes) as $theme) {
       $template_file = "$theme/templates/{$hook}.tpl.php";
+
       if (file_exists($template_file)) {
-        print System::themeRenderTemplate($template_file, $vars);
-        return;
+        return System::themeRenderTemplate($template_file, $vars);
       }
     }
+
+    // Generate function-friendly name
+    $hook = str_replace('-', '_', $hook);
 
     // If no template, look for a function.
     $func = "theme_{$hook}";
     foreach (array_reverse($this->themes) as $theme) {
       include('theme/themes.inc');
       if (function_exists($func)) {
-        print $func($vars);
-        return;
+        return $func($vars);
       }
     }
 
     // Still nothing?
-    print '';
+    return '';
+  }
+
+  /**
+   * Generate safe attributes for HTML elements.
+   */
+  static function htmlAttributes(array $attributes = array()) {
+    foreach ($attributes as $attribute => &$data) {
+      $data = implode(' ', (array) $data);
+      $data = $attribute . '="' . check_plain($data) . '"';
+    }
+    return $attributes ? ' ' . implode(' ', $attributes) : '';
   }
 
   /**
