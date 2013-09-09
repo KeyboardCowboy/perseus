@@ -48,7 +48,8 @@ class Form {
   public function addItem($type, $data, $weight = 0) {
     try {
       // Make sure the field definition method exists.
-      if (!method_exists($this, $type)) {
+      $method = "build" . ucwords($type);
+      if (!method_exists($this, $method)) {
         throw new Exception("Undefined form field type: {$type}", SYSTEM_ERROR);
       }
 
@@ -66,15 +67,15 @@ class Form {
       $data += Form::$defaults;
 
       // Create the item.
-      $this->fields["{$weight}:{$data['name']}"] = $this->{$type}($data);
+      $this->fields["{$weight}:{$data['name']}"] = $this->{$method}($data);
     }
     catch(Exception $e) {System::handleException($e);}
   }
 
   /**
-   * Form builder functions.
+   * Build a set of radio options.
    */
-  protected function radios(array $data) {
+  protected function buildRadios(array $data) {
     $radios = '';
     foreach ($data['options'] as $value => $label) {
       $attributes = array(
@@ -101,6 +102,48 @@ class Form {
     $data['attributes']['class'][] = $data['name'];
 
     return $this->system->theme('form-element', $data);
+  }
+
+  /**
+   * Build a Select list.
+   */
+  protected function buildSelect(array $data) {
+    $options = '';
+
+    // Build the options
+    foreach ($data['options'] as $value => $label) {
+      $vars = array(
+        'attributes' => array(
+          'value' => $value,
+        ),
+        'label' => $label,
+      );
+
+      $option = $this->system->theme('select-option', $vars);
+      $options .= $option;
+    }
+
+    // Build the select element.
+    $data['attributes']['name'] = $data['name'];
+    $data['output'] = $options;
+    $select = $this->system->theme('select', $data);
+
+    // Wrap and return
+    $element['attributes']['class'][] = 'select';
+    $element['attributes']['class'][] = $data['name'];
+    $element['label'] = $data['label'];
+    $element['output'] = $select;
+
+    return $this->system->theme('form-element', $element);
+  }
+
+  /**
+   * Build a table.
+   *
+   * Not actually a form item.  Need to start branching an straight HTML object.
+   */
+  protected function buildTable(array $data) {
+    return $this->system->theme('table', $data);
   }
 
   /**

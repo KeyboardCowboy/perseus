@@ -100,6 +100,15 @@ class System {
   }
 
   /**
+   * Remove an object from the session cache.
+   */
+  protected function expungeObject($name) {
+    if (!empty($_SESSION['perseus']['object'][$name])) {
+      unset($_SESSION['perseus']['object'][$name]);
+    }
+  }
+
+  /**
    * Include a file.
    */
   static function fileInclude($path) {
