@@ -16,7 +16,7 @@ class CSV {
   private $data;
 
   // Array of stored Indeces
-  private $index = array();
+  public $index = array();
 
   // Constructor
   public function __construct($filepath) {
@@ -62,42 +62,16 @@ class CSV {
 
   /**
    * Return all data.
-   *
-   * @param $fields
-   *   Specify fields to return.
-   * @param $filters
-   *   Array of filter definitions.
-   *   Ex. array('field', 'value', 'operator (defaults to == )')
    */
-  public function getData($fields = array(), $filters = array()) {
-    $return = array();
-    $header_index = array_flip($this->headers);
+  public function getData() {
+    return $this->data;
+  }
 
-    // If no fields are specified, return all of them.
-    if (empty($fields)) {
-      $fields = $this->headers;
-    }
-
-    $filter_count = count($filters);
-
-    // @todo: Implement different operators.
-    foreach ($this->data as $rid => $row) {
-      // Filter out rows
-      $pass = 0;
-      foreach ($filters as $filter) {
-        if ($row[$filter[0]] == $filter[1]) {
-          $pass++;
-        }
-      }
-
-      // If the data matches both filters, add it to the results.
-      if ($pass == $filter_count) {
-        // Limit to the fields requested.
-        $return[$rid] = array_intersect_key($row, array_flip($fields));
-      }
-    }
-
-    return $return;
+  /**
+   * Return the headers.
+   */
+  public function getHeaders() {
+    return $this->headers;
   }
 
   /**
@@ -175,6 +149,158 @@ class CSV {
    */
   public function getIndex($name) {
     return (isset($this->index[$name]) ? $this->index[$name] : array());
+  }
+}
+
+/**
+ * Define a query object to retrive and parse specific data from a CSV
+ * resource.
+ */
+class CSVQuery {
+  // The CSV resource to query against.
+  private $csv;
+
+  // Fields
+  private $fields = array();
+
+  // Filters
+  private $filters = array();
+
+  // Sorts
+  private $sorts = array();
+
+  // The results of the query.
+  private $results = array();
+
+  /**
+   * Constructor
+   *
+   * @param $res
+   *   A CSV object resource.
+   */
+  public function __construct($res) {
+    try {
+      if ($res instanceof CSV) {
+        $this->csv = $res;
+      }
+      else {
+        throw new Exception('Invalid CSV reference.', SYSTEM_ERROR);
+      }
+    }
+    catch(Exception $e) {System::handleException($e);}
+  }
+
+  /**
+   * Add fields to the query.
+   */
+  public function addField($field) {
+    if (is_array($field)) {
+      foreach ($field as $_field) {
+        $this->addField($_field);
+      }
+    }
+    elseif (is_string($field)) {
+      $this->fields[$field] = $field;
+    }
+  }
+
+  /**
+   * Add filters to the index.
+   */
+  public function addFilter($filter, $value, $index = NULL, $op = '=') {
+    if ($index) {
+      $this->filters["{$filter}|{$value}"] = array($filter, $this->csv->index[$index][$value], $op);
+    }
+    else {
+      $this->filters["{$filter}|{$value}"] = array($filter, $value, $op);
+    }
+  }
+
+  /**
+   * Add a sorting parameter.
+   */
+  public function addSort($field, $order = 'ASC', $weight = 0) {
+    $this->sorts[$field] = array(
+      'weight' => $weight,
+      'order' => $order,
+    );
+  }
+
+  /**
+   * Return the results of the query.
+   */
+  public function results() {
+    return $this->results;
+  }
+
+  /**
+   * Execute the query.
+   */
+  public function query() {
+    $results = array();
+    $headers = $this->csv->getHeaders();
+    $data    = $this->csv->getData();
+
+    try {
+      // If no fields are specified, return all of them.
+      if (empty($this->fields)) {
+        $fields = $headers;
+      }
+
+      $filter_count = count($this->filters);
+
+      // @todo: Implement different operators.
+      foreach ($data as $rid => $row) {
+        // Filter out rows
+        $pass = 0;
+        foreach ($this->filters as $filter) {
+          if ($row[$filter[0]] == $filter[1]) {
+            $pass++;
+          }
+        }
+
+        // If the data matches both filters, add it to the results.
+        if ($pass == $filter_count) {
+          // Limit to the fields requested.
+          $results[$rid] = array_intersect_key($row, array_flip($this->fields));
+        }
+      }
+
+      // Sort the remaining data.
+      if (!empty($this->sorts)) {
+        // Weight the sorters
+        foreach ($this->sorts as $field => $sort) {
+          $weighted["{$sort['weight']}:{$field}"] = $sort;
+        }
+        ksort($weighted);
+
+        // Prepare the sorting array
+        foreach ($results as $rid => $row) {
+          foreach ($weighted as $key => $sort) {
+            list(,$field) = explode(':', $key);
+
+            $s[$field][$rid] = $row[$field];
+            $o[$field] = $sort['order'];
+          }
+        }
+
+        // Merge the sorting array vars into an eval string
+        $ss = array();
+        foreach ($s as $field => $sorter) {
+          $ss[] = '$s[\'' . $field . '\'], ' . ($o[$field] == SORT_DESC ? 'SORT_DESC' : 'SORT_ASC');
+        }
+        $sort_string = 'array_multisort(' . implode(', ', $ss) . ', $results);';
+
+        // Execute the sorting.
+        eval($sort_string);
+      }
+
+      // Store the results so we can retrieve them later.
+      $this->results = $results;
+    }
+    catch(Exception $e) {System::handleException($e);}
+
+    return $this->results;
   }
 }
 

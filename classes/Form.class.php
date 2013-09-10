@@ -20,13 +20,8 @@ class Form {
   // Form fields
   private $fields = array();
 
-  // Default form field settings.
-  static $defaults = array(
-    'label' => '',
-    'description' => '',
-    'options' => array(),
-    'attributes' => array('class' => array('form-item')),
-  );
+  // Default field values
+  protected $defaults = array();
 
   // Weight incrementer for unweighted form fields.
   private $weight = 0;
@@ -39,7 +34,7 @@ class Form {
     $this->name    = $name;
     $this->action  = ($action ? filter_xss($action) : filter_xss($_SERVER['PHP_SELF']));
     $this->method  = ($method ? $method : 'POST');
-    $this->enctype = ($enctype ? $enctype : '');
+    $this->enctype = ($enctype ? $enctype : 'multipart/form-data');
   }
 
   /**
@@ -63,13 +58,31 @@ class Form {
         $weight = $this->weight =+ 5;
       }
 
+      // Default form field settings.
+      $defaults = array(
+        'label' => '',
+        'description' => '',
+        'options' => array(),
+        'attributes' => array('class' => array('form-item')),
+      );
+
       // Add default values
-      $data += Form::$defaults;
+      $data += $defaults;
 
       // Create the item.
       $this->fields["{$weight}:{$data['name']}"] = $this->{$method}($data);
     }
     catch(Exception $e) {System::handleException($e);}
+  }
+
+  /**
+   * Set default values
+   */
+  public function setDefaults($vals) {
+    // Sanitize the data.
+    foreach ($vals as $field => $val) {
+      $this->defaults[check_plain($field)] = check_plain($val);
+    }
   }
 
   /**
@@ -112,12 +125,15 @@ class Form {
 
     // Build the options
     foreach ($data['options'] as $value => $label) {
-      $vars = array(
-        'attributes' => array(
-          'value' => $value,
-        ),
-        'label' => $label,
-      );
+      $attributes = array('value' => $value);
+      $vars = array('label' => $label);
+
+      // Add the selected value
+      if (isset($data['default']) && $value == $data['default']) {
+        $attributes['selected'] = 'selected';
+      }
+
+      $vars['attributes'] = $attributes;
 
       $option = $this->system->theme('select-option', $vars);
       $options .= $option;
@@ -135,6 +151,15 @@ class Form {
     $element['output'] = $select;
 
     return $this->system->theme('form-element', $element);
+  }
+
+  /**
+   * Build a submit button.
+   */
+  protected function buildSubmit(array $data) {
+    $data['attributes']['type'] = 'submit';
+    $data['attributes']['name'] = $data['name'];
+    return $this->system->theme('submit', $data);
   }
 
   /**
@@ -162,6 +187,14 @@ class Form {
     }
     catch(Exception $e) {System::handleException($e);}
 
-    return $out;
+    $vars['output'] = $out;
+    $vars['attributes'] = array(
+      'method'  => $this->method,
+      'action'  => $this->action,
+      'enctype' => $this->enctype,
+      'name'    => $this->name,
+    );
+
+    return $this->system->theme('form', $vars);
   }
 }
