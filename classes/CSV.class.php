@@ -267,7 +267,7 @@ class CSVQuery {
       }
 
       // Sort the remaining data.
-      if (!empty($this->sorts)) {
+      if (!empty($this->sorts) && !empty($results)) {
         $s = array();
         $ss = array();
 
