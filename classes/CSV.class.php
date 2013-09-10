@@ -18,14 +18,15 @@ class CSV {
   // Array of stored Indeces
   public $index = array();
 
+  // No Results text
+  public $no_results = 'No data was found.';
+
   // Constructor
   public function __construct($filepath) {
     $this->filepath = $filepath;
 
     // Read the data out of the file.
     $this->read();
-
-    // Create an associative index for the headers.
   }
 
   /**

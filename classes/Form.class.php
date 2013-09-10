@@ -168,7 +168,12 @@ class Form {
    * Not actually a form item.  Need to start branching an straight HTML object.
    */
   protected function buildTable(array $data) {
-    return $this->system->theme('table', $data);
+    if (empty($data['rows'])) {
+      return $data['empty'];
+    }
+    else {
+      return $this->system->theme('table', $data);
+    }
   }
 
   /**
