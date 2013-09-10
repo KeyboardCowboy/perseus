@@ -13,7 +13,7 @@ class CSV {
   private $headers;
 
   // The data from the CSV file parsed into an array.
-  private $data;
+  private $data = array();
 
   // Array of stored Indeces
   public $index = array();
