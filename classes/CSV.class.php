@@ -268,6 +268,9 @@ class CSVQuery {
 
       // Sort the remaining data.
       if (!empty($this->sorts)) {
+        $s = array();
+        $ss = array();
+
         // Weight the sorters
         foreach ($this->sorts as $field => $sort) {
           $weighted["{$sort['weight']}:{$field}"] = $sort;
@@ -285,7 +288,6 @@ class CSVQuery {
         }
 
         // Merge the sorting array vars into an eval string
-        $ss = array();
         foreach ($s as $field => $sorter) {
           $ss[] = '$s[\'' . $field . '\'], ' . ($o[$field] == SORT_DESC ? 'SORT_DESC' : 'SORT_ASC');
         }
