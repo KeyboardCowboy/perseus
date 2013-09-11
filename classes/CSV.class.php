@@ -57,6 +57,9 @@ class CSV {
           }
         }
       }
+      else {
+        throw new Exception("Unable to read file {$this->filename}", SYSTEM_ERROR);
+      }
     }
     catch(Exception $e) {System::handleException($e);}
   }
