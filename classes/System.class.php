@@ -137,6 +137,31 @@ class System {
   }
 
   /**
+   * Check whether an event is allowed to occur.
+   */
+  public function floodIsAllowed($name, $threshold, $window = 3600, $identifier = NULL) {
+    if (!isset($identifier)) {
+      $identifier = $_SERVER['REMOTE_ADDR'];
+    }
+
+    // Prepare the data
+    $data = array(
+      "event = '{$name}'",
+      "identifier = '{$identifier}'",
+      "timestamp > " . (time() - $window),
+    );
+
+    // Requires a MySQL connection.
+    try {
+      $sql = $this->db();
+      $res = $sql->select('flood', array('COUNT(*) as count'), $data);
+    }
+    catch (Exception $e) {$this->handleException($e);}
+
+    return (isset($res) && $res[0]->count < $threshold);
+  }
+
+  /**
    * Flood Controler.  Registers an event into the flood log.
    */
   public function floodRegisterEvent($name, $window = 3600, $identifier = NULL) {

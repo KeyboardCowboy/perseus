@@ -43,7 +43,7 @@ class MySQL {
    * Select data from the database.
    */
   public function select($table, $cols = array(), $conds = array()) {
-    $query = "SELECT";
+    $query = "SELECT ";
     $query .= (!is_array($cols) || empty($cols) ? ' *' : implode(',', $cols));
     $query .= " FROM " . check_plain($table);
 
