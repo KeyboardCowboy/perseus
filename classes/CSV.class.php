@@ -309,4 +309,3 @@ class CSVQuery {
     return $this->results;
   }
 }
-

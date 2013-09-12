@@ -19,6 +19,12 @@ class System {
   // Registered theme locations
   protected $themes = array();
 
+  // Configuration settings
+  private $vars;
+
+  // Site settings
+  public $settings;
+
   /**
    * Constructor
    *
@@ -34,13 +40,52 @@ class System {
     }
 
     try {
-      // Load the system vars.
+      // Load the system configuration vars.
       $this->vars = $this->init('vars');
+
+      // Load the system settings.
+      $this->loadSettings();
 
       // Register theme directories.
       $this->registerThemes();
     }
     catch (Exception $e) {$this->handleException($e);}
+  }
+
+  /**
+   * Initialize the system variables.
+   */
+  private function init($type = 'vars') {
+    $file = $this->siteroot . '/settings/perseus.php';
+    $init = array();
+
+    if (file_exists($file)) {
+      include($file);
+      $init['vars'] = $vars;
+      $init['db'] = $db;
+    }
+    else {
+      throw new Exception('Unable to load perseus settings at ' . $file . '.', SYSTEM_ERROR);
+    }
+
+    return ($type ? $init[$type] : $init);
+  }
+
+  /**
+   * Get the site settings from the settings.php file.
+   */
+  private function loadSettings() {
+    // Ensure the file exists
+    $file = $this->siteroot . '/settings/settings.php';
+    $settings = array();
+
+    if (file_exists($file)) {
+      include($file);
+      $this->settings = $settings;
+    }
+    else {
+      throw new Exception('Unable to load site settings at ' . $file . '.', SYSTEM_ERROR);
+    }
   }
 
   /**
@@ -223,25 +268,6 @@ class System {
     $code = (is_numeric($code) && $code > 0 ? $code : 1);
 
     System::setMessage($e->getMessage(), $code);
-  }
-
-  /**
-   * Initialize the system variables.
-   */
-  private function init($type = 'vars') {
-    $file = $this->siteroot . '/settings/perseus.php';
-    $init = array();
-
-    if (file_exists($file)) {
-      include($file);
-      $init['vars'] = $vars;
-      $init['db'] = $db;
-    }
-    else {
-      throw new Exception('Unable to load perseus settings at ' . $file . '.', SYSTEM_ERROR);
-    }
-
-    return ($type ? $init[$type] : $init);
   }
 
   /**

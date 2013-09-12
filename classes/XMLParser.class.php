@@ -6,7 +6,11 @@
 namespace Perseus;
 
 class XMLParser {
-  private $root = '<root/>';
+  // The system instantiating the object.
+  protected $system;
+
+  // The SimpleXML object.
+  protected $xml;
 
   /**
    * Constructor
@@ -14,24 +18,19 @@ class XMLParser {
    * @param $root_element
    *   The top level element for the XML structure in the format '<root/>'.
    */
-  public function __construct($root = NULL) {
-    if ($root) {
-      $this->root = $root;
-    }
+  public function __construct($system, $root = NULL) {
+    $this->system = $system;
+    $this->xml = new \SimpleXMLElement(($root ? $root : '<data/>'));
   }
 
   /**
    * Generate an XML file from an array.
    */
-  public function createFile($data, $filename) {
+  public function createFile($filename) {
     $saved = NULL;
 
     try {
-      $xml = new \SimpleXMLElement($this->root);
-      array_walk_recursive($data, array($xml, 'addChild'));
-      $filedata = $xml->asXML();
-
-      $saved = file_put_contents($filename, $filedata);
+      $saved = $this->xml->asXML($filename);
     }
     catch(Exception $e) {System::handleException($e);}
 
