@@ -1,4 +1,6 @@
 <?php
+namespace Perseus;
+
 /**
  * @file
  * Class to manage system variables and processes.
@@ -7,7 +9,7 @@ define('SYSTEM_NOTICE',  1);
 define('SYSTEM_WARNING', 2);
 define('SYSTEM_ERROR',   3);
 
-class Perseus_System {
+class System {
   // Database connctions
   private $db = array();
 

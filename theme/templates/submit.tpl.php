@@ -4,4 +4,4 @@
  * Theme a submit button.
  */
 ?>
-<input <?php print Perseus_System::htmlAttributes($attributes); ?> />
+<input <?php print \Perseus\System::htmlAttributes($attributes); ?> />

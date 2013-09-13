@@ -1,4 +1,6 @@
 <?php
+namespace Perseus;
+
 /**
  * @file
  * PHP Mailing class.
@@ -7,7 +9,7 @@
 define('MAIL_FORMAT_PLAIN', 0);
 define('MAIL_FORMAT_HTML',  1);
 
-class Perseus_phpMail {
+class phpMail {
   private $to = array();
   private $cc = array();
   private $bcc = array();

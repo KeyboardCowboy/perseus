@@ -1,9 +1,11 @@
 <?php
+namespace Perseus;
+
 /**
  * @file
  * PHP Utility functionality.  Mostly minor static classes.
  */
-class Perseus_Util {
+class Util {
   public function Util() {
   }
 

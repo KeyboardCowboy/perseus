@@ -4,4 +4,4 @@
  * Option for a select list.
  */
 ?>
-<option<?php print Perseus_System::htmlAttributes($attributes); ?>><?php print $label; ?></option>
+<option<?php print \Perseus\System::htmlAttributes($attributes); ?>><?php print $label; ?></option>

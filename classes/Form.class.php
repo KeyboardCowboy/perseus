@@ -3,7 +3,9 @@
  * @file
  * Define common form processing and HTML elements.
  */
-class Perseus_Form {
+namespace Perseus;
+
+class Form {
   // A unique name of the form.
   protected $name;
 
