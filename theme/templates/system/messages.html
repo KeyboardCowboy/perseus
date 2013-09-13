@@ -1,0 +1,10 @@
+<div id="messages">
+  {% for type, group in messages %}
+  <h2 class="hide">{{ type|capitalize }} Messages</h2>
+  <ul class="{{ type }}">
+    {% for message in group %}
+    <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endfor %}
+</div>

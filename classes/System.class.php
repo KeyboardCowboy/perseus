@@ -303,8 +303,22 @@ class System {
     }
 
     // Instantiate Twig
+    $settings = array(
+      'cache' => FALSE, //PROOT . '/theme/cache'
+      'autoescape' => FALSE,
+    );
     $loader = new \Twig_Loader_Filesystem(array_reverse($templates));
-    $this->twig = new \Twig_Environment($loader, array('cache' => PROOT . '/theme/cache'));
+    $this->twig = new \Twig_Environment($loader, $settings);
+
+    // Add HTML Attributes function to Twig
+    $function = new \Twig_SimpleFunction('html_attributes', function(array $attributes = array()) {
+      foreach ($attributes as $attribute => &$data) {
+        $data = implode(' ', (array) $data);
+        $data = $attribute . '="' . check_plain($data) . '"';
+      }
+      return $attributes ? ' ' . implode(' ', $attributes) : '';
+    });
+    $this->twig->addFunction($function);
   }
 
   /**

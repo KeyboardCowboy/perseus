@@ -3,4 +3,9 @@
  * @file
  * Prepare messages.
  */
-$vars['messages'] = \Perseus\System::getMessages();
+use Perseus\System;
+
+// Translate the error codes to something readable.
+foreach (System::getMessages() as $type => $group) {
+  $vars['messages'][System::errorCodes($type)] = $group;
+}
