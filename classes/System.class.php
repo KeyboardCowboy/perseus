@@ -49,10 +49,6 @@ class System {
       // Load the system settings.
       $this->loadSettings();
 
-      // Instantiate Twig
-      $loader = new \Twig_Loader_Filesystem(PROOT . '/theme/templates');
-      $this->twig = new \Twig_Environment($loader, array('cache' => PROOT . '/theme/cache'));
-
       // Register theme directories.
       $this->registerThemes();
     }
@@ -293,51 +289,37 @@ class System {
    *   The location of the theme directory relative to docroot.
    */
   private function registerThemes() {
+    $templates = array();
+
     // First, the default theme
     $this->themes[] = PROOT . '/theme';
+    $templates[] = PROOT . '/theme/templates';
 
     // Next, site overrides
     $site_theme = $this->siteroot . '/theme';
     if (file_exists($site_theme)) {
       $this->themes[] = $site_theme;
+      $templates[] = "{$site_theme}/templates";
     }
+
+    // Instantiate Twig
+    $loader = new \Twig_Loader_Filesystem(array_reverse($templates));
+    $this->twig = new \Twig_Environment($loader, array('cache' => PROOT . '/theme/cache'));
   }
 
   /**
    * Theme an item.
    */
-  public function theme($hook, $vars = array()) {
+  public function theme($template, $vars = array()) {
     // Call processors for each implementation.
     foreach ($this->themes as $theme) {
-      $processor_file = "$theme/processors/{$hook}.inc";
+      $processor_file = "$theme/processors/{$template}.inc";
       if (file_exists($processor_file)) {
         System::themeProcessVars($processor_file, $vars);
       }
     }
 
-    // Look for a template starting with the most recently registered theme.
-    foreach (array_reverse($this->themes) as $theme) {
-      $template_file = "$theme/templates/{$hook}.tpl.php";
-
-      if (file_exists($template_file)) {
-        return System::themeRenderTemplate($template_file, $vars);
-      }
-    }
-
-    // Generate function-friendly name
-    $hook = str_replace('-', '_', $hook);
-
-    // If no template, look for a function.
-    $func = "theme_{$hook}";
-    foreach (array_reverse($this->themes) as $theme) {
-      include('theme/themes.inc');
-      if (function_exists($func)) {
-        return $func($vars);
-      }
-    }
-
-    // Still nothing?
-    return '';
+    return $this->twig->render("{$template}.html", $vars);
   }
 
   /**
@@ -358,26 +340,6 @@ class System {
    */
   static function themeProcessVars($file, &$vars) {
     include($file);
-  }
-
-  /**
-   * Render a system default template, which is essentially a PHP template.
-   *
-   * Borrowed from Drupal.
-   * http://api.drupal.org/api/drupal/includes%21theme.inc/function/theme_render_template/7
-   */
-  static function themeRenderTemplate($template_file, $variables) {
-    extract($variables, EXTR_SKIP); // Extract the variables to a local namespace
-    ob_start(); // Start output buffering
-    include($template_file); // Include the template file
-    return ob_get_clean(); // End buffering and return its contents
-  }
-
-  /**
-   * Get a variable from the system settings.
-   */
-  public function val($var, $default = NULL) {
-    return (property_exists($this, $var) ? $this->$var : $default);
   }
 }
 
