@@ -16,6 +16,9 @@ class System {
   // The server path to the root of the website.
   protected $siteroot;
 
+  // The twig environment instance for theming.
+  public $twig;
+
   // Registered theme locations
   protected $themes = array();
 
@@ -45,6 +48,10 @@ class System {
 
       // Load the system settings.
       $this->loadSettings();
+
+      // Instantiate Twig
+      $loader = new \Twig_Loader_Filesystem(PROOT . '/theme/templates');
+      $this->twig = new \Twig_Environment($loader, array('cache' => PROOT . '/theme/cache'));
 
       // Register theme directories.
       $this->registerThemes();
