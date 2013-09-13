@@ -3,9 +3,7 @@
  * @file
  * Wrapper class to process XML data using SimpleXMLElement.
  */
-namespace Perseus;
-
-class XMLParser {
+class Perseus_XMLParser {
   // The system instantiating the object.
   protected $system;
 
@@ -20,7 +18,7 @@ class XMLParser {
    */
   public function __construct($system, $root = NULL) {
     $this->system = $system;
-    $this->xml = new \SimpleXMLElement(($root ? $root : '<data/>'));
+    $this->xml = new SimpleXMLElement(($root ? $root : '<data/>'));
   }
 
   /**
@@ -32,7 +30,7 @@ class XMLParser {
     try {
       $saved = $this->xml->asXML($filename);
     }
-    catch(Exception $e) {System::handleException($e);}
+    catch(Exception $e) {Perseus_System::handleException($e);}
 
     return $saved;
   }

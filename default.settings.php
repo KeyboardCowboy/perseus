@@ -6,7 +6,7 @@
  * without worrying about messing up or understanding sensitive data.  Those
  * settings and commands live in /settings/perseus.php.
  *
- * These settings are available in System::settings.
+ * These settings are available in Perseus_System::settings.
  */
 $settings = array(
   // Your settings go here.

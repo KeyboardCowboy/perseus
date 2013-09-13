@@ -1,11 +1,9 @@
 <?php
-namespace Perseus;
-
 /**
  * @file
  * MySQL Database abstraction class.
  */
-class MySQL {
+class Perseus_MySQL {
   private $conn;
 
   /**
@@ -15,7 +13,7 @@ class MySQL {
     try {
       $this->connect($creds);
     }
-    catch(Exception $e) {System::handleException($e);}
+    catch(Exception $e) {Perseus_System::handleException($e);}
   }
 
   /**
@@ -58,7 +56,7 @@ class MySQL {
 
     $result = mysqli_query($this->conn, $query);
     if (mysqli_error($this->conn)) {
-      System::setMessage('MySQL error[' . mysqli_errno($this->conn) . ']: ' . mysqli_error($this->conn));
+      Perseus_System::setMessage('MySQL error[' . mysqli_errno($this->conn) . ']: ' . mysqli_error($this->conn));
       return array();
     }
 
@@ -74,7 +72,7 @@ class MySQL {
 
     $result = mysqli_query($this->conn, $query);
     if (mysqli_error($this->conn)) {
-      System::setMessage('MySQL error[' . mysqli_errno($this->conn) . ']: ' . mysqli_error($this->conn));
+      Perseus_System::setMessage('MySQL error[' . mysqli_errno($this->conn) . ']: ' . mysqli_error($this->conn));
     }
 
     return mysqli_affected_rows($this->conn);
@@ -87,10 +85,10 @@ class MySQL {
     try {
       $result = mysqli_query($this->conn, $query);
       if (mysqli_error($this->conn)) {
-        System::setMessage('MySQL error[' . mysqli_errno($this->conn) . ']: ' . mysqli_error($this->conn));
+        Perseus_System::setMessage('MySQL error[' . mysqli_errno($this->conn) . ']: ' . mysqli_error($this->conn));
       }
     }
-    catch(Exception $e) {System::handleException($e);}
+    catch(Exception $e) {Perseus_System::handleException($e);}
 
     return mysqli_affected_rows($this->conn);
   }

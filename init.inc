@@ -17,5 +17,12 @@ Perseus_System::fileRequire('includes/util.inc');
 // Register autoloader
 function __autoload($class) {
   $parts = explode('_', $class);
-  include_once 'classes/' . end($parts) . '.class.php';
+  $file = PROOT . '/classes/' . end($parts) . '.class.php';
+
+  if (file_exists($file)) {
+    require_once $file;
+  }
+  else {
+    return;
+  }
 }

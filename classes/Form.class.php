@@ -3,9 +3,7 @@
  * @file
  * Define common form processing and HTML elements.
  */
-namespace Perseus;
-
-class Form {
+class Perseus_Form {
   // A unique name of the form.
   protected $name;
 
@@ -72,7 +70,7 @@ class Form {
       // Create the item.
       $this->fields["{$weight}:{$data['name']}"] = $this->{$method}($data);
     }
-    catch(Exception $e) {System::handleException($e);}
+    catch(Exception $e) {Perseus_System::handleException($e);}
   }
 
   /**
@@ -185,7 +183,7 @@ class Form {
         $out .= $field;
       }
     }
-    catch(Exception $e) {System::handleException($e);}
+    catch(Exception $e) {Perseus_System::handleException($e);}
 
     $vars['output'] = $out;
     $vars['attributes'] = array(

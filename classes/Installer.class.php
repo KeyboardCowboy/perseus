@@ -5,12 +5,10 @@
  *
  * - Creates database tables.
  */
-namespace Perseus;
-
 /**
  * Define the installer class.
  */
-class Installer {
+class Perseus_Installer {
   private $system;
 
   /**
@@ -40,7 +38,7 @@ class Installer {
 /**
  * Define the installer interface.
  */
-interface InstallerInterface {
+interface Perseus_InstallerInterface {
   /**
    * Constructor
    */

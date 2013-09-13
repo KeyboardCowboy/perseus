@@ -1,6 +1,4 @@
 <?php
-namespace Perseus;
-
 /**
  * @file
  * PHP Mailing class.
@@ -9,7 +7,7 @@ namespace Perseus;
 define('MAIL_FORMAT_PLAIN', 0);
 define('MAIL_FORMAT_HTML',  1);
 
-class phpMail {
+class Perseus_phpMail {
   private $to = array();
   private $cc = array();
   private $bcc = array();
@@ -24,7 +22,7 @@ class phpMail {
   /**
    * Constructor
    */
-  public function phpMail() {
+  public function __construct() {
     global $system;
 
     // Set some defaults.
@@ -86,15 +84,15 @@ class phpMail {
   public function send() {
     // Check required fields.
     if (empty($this->to)) {
-      System::setMessage('Message has no recipients.', 'error');
+      Perseus_System::setMessage('Message has no recipients.', 'error');
       return FALSE;
     }
     if (empty($this->subject)) {
-      System::setMessage('Message has no subject.', 'error');
+      Perseus_System::setMessage('Message has no subject.', 'error');
       return FALSE;
     }
     if (empty($this->body)) {
-      System::setMessage('Message has no body.', 'error');
+      Perseus_System::setMessage('Message has no body.', 'error');
       return FALSE;
     }
 
@@ -152,7 +150,7 @@ class phpMail {
         }
       }
       else {
-        System::setMessage("Invalid e-mail address '$email'.", 'error');
+        Perseus_System::setMessage("Invalid e-mail address '$email'.", 'error');
       }
     }
   }

@@ -1,11 +1,9 @@
 <?php
-namespace Perseus;
-
 /**
  * @file
  * Handle loading, extracting and maybe creating csv file data.
  */
-class CSV {
+class Perseus_CSV {
   // The location of the csv file.
   private $filepath;
 
@@ -61,7 +59,7 @@ class CSV {
         throw new Exception("Unable to read file {$this->filename}", SYSTEM_ERROR);
       }
     }
-    catch(Exception $e) {System::handleException($e);}
+    catch(Exception $e) {Perseus_System::handleException($e);}
   }
 
   /**
@@ -103,7 +101,7 @@ class CSV {
         }
       }
     }
-    catch(Exception $e) {System::handleException($e);}
+    catch(Exception $e) {Perseus_System::handleException($e);}
 
     // Create an index if requested
     if ($index) {
@@ -160,7 +158,7 @@ class CSV {
  * Define a query object to retrive and parse specific data from a CSV
  * resource.
  */
-class CSVQuery {
+class Perseus_CSVQuery {
   // The CSV resource to query against.
   private $csv;
 
@@ -184,14 +182,14 @@ class CSVQuery {
    */
   public function __construct($res) {
     try {
-      if ($res instanceof CSV) {
+      if ($res instanceof Perseus_CSV) {
         $this->csv = $res;
       }
       else {
         throw new Exception('Invalid CSV reference.', SYSTEM_ERROR);
       }
     }
-    catch(Exception $e) {System::handleException($e);}
+    catch(Exception $e) {Perseus_System::handleException($e);}
   }
 
   /**
@@ -304,7 +302,7 @@ class CSVQuery {
       // Store the results so we can retrieve them later.
       $this->results = $results;
     }
-    catch(Exception $e) {System::handleException($e);}
+    catch(Exception $e) {Perseus_System::handleException($e);}
 
     return $this->results;
   }

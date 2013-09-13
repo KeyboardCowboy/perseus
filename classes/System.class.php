@@ -1,6 +1,4 @@
 <?php
-namespace Perseus;
-
 /**
  * @file
  * Class to manage system variables and processes.
@@ -9,7 +7,7 @@ define('SYSTEM_NOTICE',  1);
 define('SYSTEM_WARNING', 2);
 define('SYSTEM_ERROR',   3);
 
-class System {
+class Perseus_System {
   // Database connctions
   private $db = array();
 
@@ -267,7 +265,7 @@ class System {
     $code = $e->getCode();
     $code = (is_numeric($code) && $code > 0 ? $code : 1);
 
-    System::setMessage($e->getMessage(), $code);
+    Perseus_System::setMessage($e->getMessage(), $code);
   }
 
   /**
@@ -304,7 +302,7 @@ class System {
     foreach ($this->themes as $theme) {
       $processor_file = "$theme/processors/{$hook}.inc";
       if (file_exists($processor_file)) {
-        System::themeProcessVars($processor_file, $vars);
+        Perseus_System::themeProcessVars($processor_file, $vars);
       }
     }
 
@@ -313,7 +311,7 @@ class System {
       $template_file = "$theme/templates/{$hook}.tpl.php";
 
       if (file_exists($template_file)) {
-        return System::themeRenderTemplate($template_file, $vars);
+        return Perseus_System::themeRenderTemplate($template_file, $vars);
       }
     }
 
@@ -377,7 +375,7 @@ class System {
 /**
  * Installer Class
  */
-class SystemInstaller extends Installer implements InstallerInterface {
+class Perseus_SystemInstaller extends Perseus_Installer implements Perseus_InstallerInterface {
   // Register installation procedures
   private $install = array('flood');
 
@@ -408,7 +406,7 @@ class SystemInstaller extends Installer implements InstallerInterface {
         }
       }
     }
-    catch(Exception $e){System::handleException($e);}
+    catch(Exception $e){Perseus_System::handleException($e);}
   }
 
   /**

@@ -5,7 +5,7 @@
  */
 use Perseus_System;
 ?>
-<table <?php print System::htmlAttributes($attributes); ?>>
+<table <?php print Perseus_System::htmlAttributes($attributes); ?>>
   <?php if (!empty($headers)) : ?>
   <thead>
     <?php foreach ($headers as $field => $header) : ?>

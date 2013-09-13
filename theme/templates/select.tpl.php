@@ -4,4 +4,4 @@
  * Select list.
  */
 ?>
-<select<?php print \Perseus\System::htmlAttributes($attributes); ?>><?php print $output; ?></select>
+<select<?php print Perseus_System::htmlAttributes($attributes); ?>><?php print $output; ?></select>
