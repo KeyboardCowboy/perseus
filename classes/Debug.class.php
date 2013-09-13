@@ -1,11 +1,9 @@
 <?php
-namespace Perseus;
-
 /**
  * @file
  * Debugging and logging class.
  */
-class Debug {
+class Perseus_Debug {
   /**
    * Constructor
    */

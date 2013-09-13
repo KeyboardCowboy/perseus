@@ -1,11 +1,9 @@
 <?php
-namespace Perseus;
-
 /**
  * @file
  * MySQL Database abstraction class.
  */
-class MySQL {
+class Perseus_MySQL {
   private $conn;
 
   /**

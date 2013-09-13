@@ -5,9 +5,7 @@
  *
  * - Creates database tables.
  */
-namespace Perseus;
-
-class Installer {
+class Perseus_Installer {
   public function __construct() {
 
   }

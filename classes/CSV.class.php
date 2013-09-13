@@ -1,11 +1,9 @@
 <?php
-namespace Perseus;
-
 /**
  * @file
  * Handle loading, extracting and maybe creating csv file data.
  */
-class CSV {
+class Perseus_CSV {
   // The location of the csv file.
   private $filepath;
 

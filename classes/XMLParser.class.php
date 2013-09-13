@@ -3,9 +3,7 @@
  * @file
  * Wrapper class to process XML data using SimpleXMLElement.
  */
-namespace Perseus;
-
-class XMLParser {
+class Perseus_XMLParser {
   // The system instantiating the object.
   protected $system;
 
