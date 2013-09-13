@@ -6,3 +6,6 @@ System manager to handle user sessions and common site-building frameworks.
 
 ## Version 3.x
 Version 3 introduces the Twig theming system and PHP namespaces.
+
+### Requirements
+- PHP 5.3.0 or greater
