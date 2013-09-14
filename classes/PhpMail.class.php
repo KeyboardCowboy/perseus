@@ -9,7 +9,7 @@ namespace Perseus;
 define('MAIL_FORMAT_PLAIN', 0);
 define('MAIL_FORMAT_HTML',  1);
 
-class phpMail {
+class PhpMail extends Service {
   private $to = array();
   private $cc = array();
   private $bcc = array();
@@ -24,13 +24,8 @@ class phpMail {
   /**
    * Constructor
    */
-  public function phpMail() {
-    global $system;
-
-    // Set some defaults.
-    if ($mail = $system->val('site_mail')) {
-      $this->from($mail, $system->val('site_name'));
-    }
+  public function __construct($system) {
+    parent::__construct($system);
   }
 
   /**
@@ -86,15 +81,15 @@ class phpMail {
   public function send() {
     // Check required fields.
     if (empty($this->to)) {
-      System::setMessage('Message has no recipients.', 'error');
+      System::setMessage('Message has no recipients.', SYSTEM_ERROR);
       return FALSE;
     }
     if (empty($this->subject)) {
-      System::setMessage('Message has no subject.', 'error');
+      System::setMessage('Message has no subject.', SYSTEM_ERROR);
       return FALSE;
     }
     if (empty($this->body)) {
-      System::setMessage('Message has no body.', 'error');
+      System::setMessage('Message has no body.', SYSTEM_ERROR);
       return FALSE;
     }
 
@@ -134,7 +129,7 @@ class phpMail {
   /**
    * Validate email address.
    */
-  private function emailIsValid($email) {
+  public function emailIsValid($email) {
     return (bool) filter_var($email, FILTER_VALIDATE_EMAIL);
   }
 
@@ -152,7 +147,7 @@ class phpMail {
         }
       }
       else {
-        System::setMessage("Invalid e-mail address '$email'.", 'error');
+        System::setMessage("Invalid e-mail address '$email'.", SYSTEM_ERROR);
       }
     }
   }

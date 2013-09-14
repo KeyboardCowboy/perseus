@@ -5,15 +5,17 @@ namespace Perseus;
  * @file
  * MySQL Database abstraction class.
  */
-class MySQL {
+class MySQL extends Service {
   private $conn;
 
   /**
    * Constructor
    */
-  public function __construct($creds) {
+  public function __construct($system, $settings = array()) {
+    parent::__construct($system);
+
     try {
-      $this->connect($creds);
+      $this->connect($settings);
     }
     catch(Exception $e) {System::handleException($e);}
   }

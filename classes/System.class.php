@@ -86,9 +86,6 @@ class System {
       include($file);
       $this->settings = $settings;
     }
-    else {
-      throw new Exception('Unable to load site settings at ' . $file . '.', SYSTEM_ERROR);
-    }
   }
 
   /**
@@ -157,6 +154,33 @@ class System {
   }
 
   /**
+   * Load a new service object.
+   */
+  public function newService($type, $settings = array()) {
+    switch ($type) {
+      case 'csv':
+        return new \Perseus\CSV($this, $settings);
+        break;
+
+      case 'mail':
+        return new \Perseus\PhpMail($this, $settings);
+        break;
+
+      case 'form':
+        return new \Perseus\Form($this, $settings);
+        break;
+
+      case 'db':
+        return new \Perseus\MySQL($this, $settings);
+        break;
+
+      case 'xml':
+        return new \Perseus\XMLParser($this, $settings);
+        break;
+    }
+  }
+
+  /**
    * Include a file.
    */
   static function fileInclude($path) {
@@ -206,7 +230,7 @@ class System {
     }
     catch (Exception $e) {$this->handleException($e);}
 
-    return (isset($res) && $res[0]->count < $threshold);
+    return (isset($res) && ($res[0]->count < $threshold));
   }
 
   /**
@@ -245,7 +269,7 @@ class System {
         // Get the creds.
         $creds = $this->init('db');
         if (isset($creds[$database])) {
-          $db = new MySQL($creds[$database]);
+          $db = $this->newService('db', $creds[$database]);
 
           if ($db->isConnected()) {
             $this->db[$database] = $db;
@@ -325,15 +349,22 @@ class System {
    * Theme an item.
    */
   public function theme($template, $vars = array()) {
-    // Call processors for each implementation.
-    foreach ($this->themes as $theme) {
-      $processor_file = "$theme/processors/{$template}.inc";
-      if (file_exists($processor_file)) {
-        System::themeProcessVars($processor_file, $vars);
-      }
-    }
+    $out = '';
 
-    return $this->twig->render("{$template}.html", $vars);
+    try {
+      // Call processors for each implementation.
+      foreach ($this->themes as $theme) {
+        $processor_file = "$theme/processors/{$template}.inc";
+        if (file_exists($processor_file)) {
+          System::themeProcessVars($processor_file, $vars);
+        }
+      }
+
+      $out = $this->twig->render("{$template}.html", $vars);
+    }
+    catch(Exception $e){System::handleException($e);}
+
+    return $out;
   }
 
   /**

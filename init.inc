@@ -16,10 +16,6 @@ require_once(PROOT . '/classes/System.class.php');
 // Bootstrap common utilities required by other bootstrap phases.
 require_once(PROOT . '/includes/util.inc');
 
-// Register Twig
-//require_once(PROOT . '/theme/twig/lib/Twig/Autoloader.php');
-//Twig_Autoloader::register();
-
 // Autoloading router
 function perseus_autoload($class) {
   //print '<pre>' . $class . '</pre>';
