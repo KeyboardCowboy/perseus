@@ -3,7 +3,6 @@
  * @file
  * Theme a table.
  */
-use Perseus_System;
 ?>
 <table <?php print Perseus_System::htmlAttributes($attributes); ?>>
   <?php if (!empty($headers)) : ?>

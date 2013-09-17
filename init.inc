@@ -4,7 +4,7 @@
  * Perseus Library Bootstrapper.
  */
 define('DOCROOT', $_SERVER['DOCUMENT_ROOT']);
-define('PROOT', __DIR__);
+define('PROOT', dirname(__FILE__));
 
 session_start();
 

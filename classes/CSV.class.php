@@ -8,7 +8,7 @@ class Perseus_CSV {
   private $filepath;
 
   // The column headers.
-  private $headers;
+  private $headers = array();
 
   // The data from the CSV file parsed into an array.
   private $data = array();

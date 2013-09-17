@@ -404,7 +404,7 @@ function url($path = NULL, array $options = array()) {
  * Alias for debug var dump.
  */
 function pd($var) {
-  \Perseus\Debug::dump($var);
+  Perseus_Debug::dump($var);
 }
 
 /**
