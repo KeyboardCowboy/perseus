@@ -88,6 +88,11 @@ class Perseus_Form {
    */
   protected function buildRadios(array $data) {
     $radios = '';
+
+    // Calculate grouping
+    $groupcnt = (isset($data['cols']) ? ceil(count($data['options']) / $data['cols']) : count($data['options']));
+    $g = 0;
+
     foreach ($data['options'] as $value => $label) {
       $attributes = array(
         'input' => array(
@@ -105,10 +110,13 @@ class Perseus_Form {
       }
 
       $radio = $this->system->theme('radio', array('attributes' => $attributes, 'label' => $label));
-      $radios .= $this->system->theme('form-element', array('output' => $radio, 'attributes' => array()));
+
+      $g++;
+
+      $radios[ceil($g/$groupcnt)][] = $this->system->theme('form-element', array('output' => $radio, 'attributes' => array()));
     }
 
-    $data['output'] = $radios;
+    $data['output'] = $this->system->theme('radios', array('options' => $radios));
     $data['attributes']['class'][] = 'radios';
     $data['attributes']['class'][] = $data['name'];
 
@@ -191,6 +199,7 @@ class Perseus_Form {
       'action'  => $this->action,
       'enctype' => $this->enctype,
       'name'    => $this->name,
+      'id'      => unique_id($this->name),
     );
 
     return $this->system->theme('form', $vars);
