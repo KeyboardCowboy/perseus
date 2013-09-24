@@ -89,7 +89,12 @@ class Form {
    * Build a set of radio options.
    */
   protected function buildRadios(array $data) {
-    $radios = '';
+    $radios = array();
+
+    // Calculate grouping
+    $groupcnt = (isset($data['cols']) ? ceil(count($data['options']) / $data['cols']) : count($data['options']));
+    $g = 1;
+
     foreach ($data['options'] as $value => $label) {
       $attributes = array(
         'input' => array(
@@ -107,10 +112,11 @@ class Form {
       }
 
       $radio = $this->system->theme('radio', array('attributes' => $attributes, 'label' => $label));
-      $radios .= $this->system->theme('form-element', array('output' => $radio, 'attributes' => array()));
+      $radios[ceil($g/$groupcnt)][] = $this->system->theme('form-element', array('output' => $radio, 'attributes' => array()));
+      $g++;
     }
 
-    $data['output'] = $radios;
+    $data['output'] = $this->system->theme('radios', array('options' => $radios));
     $data['attributes']['class'][] = 'radios';
     $data['attributes']['class'][] = $data['name'];
 
@@ -193,6 +199,7 @@ class Form {
       'action'  => $this->action,
       'enctype' => $this->enctype,
       'name'    => $this->name,
+      'id'      => unique_id($this->name),
     );
 
     return $this->system->theme('form', $vars);
