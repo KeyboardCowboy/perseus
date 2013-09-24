@@ -29,12 +29,12 @@ class Form {
   /**
    * Constructor
    */
-  public function __construct($perseus, $name, $action = NULL, $method = NULL, $enctype = NULL) {
-    $this->system  = $perseus;
-    $this->name    = $name;
-    $this->action  = ($action ? filter_xss($action) : filter_xss($_SERVER['PHP_SELF']));
-    $this->method  = ($method ? $method : 'POST');
-    $this->enctype = ($enctype ? $enctype : 'multipart/form-data');
+  public function __construct($system, $settings) {
+    $this->system  = $system;
+    $this->name    = (isset($settings['name']) ? $settings['name'] : uniqid());
+    $this->action  = (isset($settings['action']) ? filter_xss($action) : filter_xss($_SERVER['PHP_SELF']));
+    $this->method  = (isset($settings['method']) ? $method : 'POST');
+    $this->enctype = (isset($settings['enctype']) ? $enctype : 'multipart/form-data');
   }
 
   /**
@@ -89,7 +89,12 @@ class Form {
    * Build a set of radio options.
    */
   protected function buildRadios(array $data) {
-    $radios = '';
+    $radios = array();
+
+    // Calculate grouping
+    $groupcnt = (isset($data['cols']) ? ceil(count($data['options']) / $data['cols']) : count($data['options']));
+    $g = 1;
+
     foreach ($data['options'] as $value => $label) {
       $attributes = array(
         'input' => array(
@@ -106,15 +111,16 @@ class Form {
         $attributes['input']['checked'] = 'checked';
       }
 
-      $radio = $this->system->theme('radio', array('attributes' => $attributes, 'label' => $label));
-      $radios .= $this->system->theme('form-element', array('output' => $radio, 'attributes' => array()));
+      $radio = $this->system->theme('form/radio', array('attributes' => $attributes, 'label' => $label));
+      $radios[ceil($g/$groupcnt)][] = $this->system->theme('form/form-element', array('output' => $radio, 'attributes' => array()));
+      $g++;
     }
 
-    $data['output'] = $radios;
+    $data['output'] = $this->system->theme('form/radios', array('options' => $radios));
     $data['attributes']['class'][] = 'radios';
     $data['attributes']['class'][] = $data['name'];
 
-    return $this->system->theme('form-element', $data);
+    return $this->system->theme('form/form-element', $data);
   }
 
   /**
@@ -135,14 +141,14 @@ class Form {
 
       $vars['attributes'] = $attributes;
 
-      $option = $this->system->theme('select-option', $vars);
+      $option = $this->system->theme('form/select-option', $vars);
       $options .= $option;
     }
 
     // Build the select element.
     $data['attributes']['name'] = $data['name'];
     $data['output'] = $options;
-    $select = $this->system->theme('select', $data);
+    $select = $this->system->theme('form/select', $data);
 
     // Wrap and return
     $element['attributes']['class'][] = 'select';
@@ -150,7 +156,7 @@ class Form {
     $element['label'] = $data['label'];
     $element['output'] = $select;
 
-    return $this->system->theme('form-element', $element);
+    return $this->system->theme('form/form-element', $element);
   }
 
   /**
@@ -159,7 +165,7 @@ class Form {
   protected function buildSubmit(array $data) {
     $data['attributes']['type'] = 'submit';
     $data['attributes']['name'] = $data['name'];
-    return $this->system->theme('submit', $data);
+    return $this->system->theme('form/submit', $data);
   }
 
   /**
@@ -193,8 +199,9 @@ class Form {
       'action'  => $this->action,
       'enctype' => $this->enctype,
       'name'    => $this->name,
+      'id'      => unique_id($this->name),
     );
 
-    return $this->system->theme('form', $vars);
+    return $this->system->theme('form/form', $vars);
   }
 }

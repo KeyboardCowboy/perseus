@@ -1,0 +1,7 @@
+{% for group, radios in options %}
+  <div class="group {{ group }}">
+    {% for radio in radios %}
+    {{ radio }}
+    {% endfor %}
+  </div>
+{% endfor %}
