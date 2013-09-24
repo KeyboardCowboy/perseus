@@ -5,7 +5,7 @@
  */
 namespace Perseus;
 
-class Form {
+class Form extends Service {
   // A unique name of the form.
   protected $name;
 
@@ -13,9 +13,6 @@ class Form {
   private $action;
   private $method;
   private $enctype = '';
-
-  // The perseus system managing the form.
-  protected $system;
 
   // Form fields
   private $fields = array();
