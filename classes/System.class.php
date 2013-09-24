@@ -157,7 +157,7 @@ class System {
    * Load a new service object.
    */
   public function newService($type, $settings = array()) {
-    switch ($type) {
+    switch (strtolower($type)) {
       case 'csv':
         return new \Perseus\CSV($this, $settings);
         break;
