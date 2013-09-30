@@ -31,7 +31,7 @@ function check_plain($text) {
 function filter_xss($string, $allowed_tags = array('a', 'em', 'strong', 'cite', 'blockquote', 'code', 'ul', 'ol', 'li', 'dl', 'dt', 'dd')) {
   // Only operate on valid UTF-8 strings. This is necessary to prevent cross
   // site scripting issues on Internet Explorer 6.
-  if (!kc_validate_utf8($string)) {
+  if (!perseus_validate_utf8($string)) {
     return '';
   }
   // Store the text format.
@@ -242,7 +242,7 @@ function _filter_xss_attributes($attr) {
  * http://api.drupal.org/api/drupal/core%21includes%21common.inc/function/filter_xss_bad_protocol/8
  */
 function filter_xss_bad_protocol($string) {
-  return check_plain(kc_strip_dangerous_protocols($string));
+  return check_plain(perseus_strip_dangerous_protocols($string));
 }
 
 /**
@@ -251,7 +251,7 @@ function filter_xss_bad_protocol($string) {
  * Borrowed from Drupal:
  * http://api.drupal.org/api/drupal/core%21includes%21common.inc/function/drupal_http_build_query/8
  */
-function kc_http_build_query(array $query, $parent = '') {
+function perseus_http_build_query(array $query, $parent = '') {
   $params = array();
 
   foreach ($query as $key => $value) {
@@ -259,7 +259,7 @@ function kc_http_build_query(array $query, $parent = '') {
 
     // Recurse into children.
     if (is_array($value)) {
-      $params[] = kc_http_build_query($value, $key);
+      $params[] = perseus_http_build_query($value, $key);
     }
     // If a query parameter value is NULL, only append its key.
     elseif (!isset($value)) {
@@ -280,7 +280,7 @@ function kc_http_build_query(array $query, $parent = '') {
  * Borrowed from Drupal:
  * http://api.drupal.org/api/drupal/core%21includes%21common.inc/function/drupal_strip_dangerous_protocols/8
  */
-function kc_strip_dangerous_protocols($uri) {
+function perseus_strip_dangerous_protocols($uri) {
   static $allowed_protocols;
 
   if (!isset($allowed_protocols)) {
@@ -317,14 +317,14 @@ function kc_strip_dangerous_protocols($uri) {
  * Borrowed from Drupal:
  * http://api.drupal.org/api/drupal/core%21includes%21common.inc/function/drupal_encode_path/8
  */
-function kc_encode_path($path) {
+function perseus_encode_path($path) {
   return str_replace('%2F', '/', rawurlencode($path));
 }
 
 /**
  *
  */
-function kc_validate_utf8($text) {
+function perseus_validate_utf8($text) {
   if (strlen($text) == 0) {
     return TRUE;
   }
@@ -356,7 +356,7 @@ function url($path = NULL, array $options = array()) {
     // that would require another function call, and performance inside url() is
     // critical.
     $colonpos = strpos($path, ':');
-    $options['external'] = ($colonpos !== FALSE && !preg_match('![/?#]!', substr($path, 0, $colonpos)) && kc_strip_dangerous_protocols($path) == $path);
+    $options['external'] = ($colonpos !== FALSE && !preg_match('![/?#]!', substr($path, 0, $colonpos)) && perseus_strip_dangerous_protocols($path) == $path);
   }
 
   // Preserve the original path before altering or aliasing.
@@ -377,7 +377,7 @@ function url($path = NULL, array $options = array()) {
     }
     // Append the query.
     if ($options['query']) {
-      $path .= (strpos($path, '?') !== FALSE ? '&' : '?') . kc_http_build_query($options['query']);
+      $path .= (strpos($path, '?') !== FALSE ? '&' : '?') . perseus_http_build_query($options['query']);
     }
     if (isset($options['https'])) {
       if ($options['https'] === TRUE) {
@@ -394,8 +394,8 @@ function url($path = NULL, array $options = array()) {
   $base = $options['absolute'] ? $options['base_url'] . '/' : $system->base_path;
   $prefix = empty($path) ? rtrim($options['prefix'], '/') : $options['prefix'];
 
-  $path = kc_encode_path($prefix . $path);
-  $query = $options['query'] ? ('?' . kc_http_build_query($options['query'])) : '';
+  $path = perseus_encode_path($prefix . $path);
+  $query = $options['query'] ? ('?' . perseus_http_build_query($options['query'])) : '';
 
   return $base . $path . $query . $options['fragment'];
 }
