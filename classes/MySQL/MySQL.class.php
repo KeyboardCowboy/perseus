@@ -11,11 +11,32 @@ class MySQL extends Service {
   /**
    * Constructor
    */
-  public function __construct($system, $settings = array()) {
+  public function __construct($system, array $settings = array()) {
     parent::__construct($system);
 
+    $creds = array();
+
+    // Do we have a dbname or creds?
+    if (!empty($settings['creds'])) {
+      // @todo: Validate creds.
+      $creds = $settings['creds'];
+    }
+    elseif (!empty($settings['database'])) {
+      $creds = $this->retrieveCreds($settings['database']);
+    }
+    else {
+      $creds = $this->retrieveCreds('default');
+    }
+
     try {
-      $this->connect($settings);
+      // Make sure our creds are set.
+      foreach (array('host', 'user', 'pass', 'name') as $field) {
+        if (empty($creds[$field])) {
+          throw new Exception('Invalid database credentials.  Unable to connect.', SYSTEM_ERROR);
+        }
+      }
+
+      $this->connect($creds);
     }
     catch(Exception $e) {System::handleException($e);}
   }
@@ -39,6 +60,21 @@ class MySQL extends Service {
    */
   public function isConnected() {
     return (is_object($this->conn));
+  }
+
+  /**
+   * Retrieve the credentials from the perseus settings file.
+   */
+  private function retrieveCreds($name = 'default') {
+    // At this point we have already validated that the file exists.
+    include($this->system->config_file);
+
+    if (isset($db[$name])) {
+      return $db[$name];
+    }
+    else {
+      throw new Exception("Unable to connect to database {$name}.  Invalid credentials.", SYSTEM_ERROR);
+    }
   }
 
   /**

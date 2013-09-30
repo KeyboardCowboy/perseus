@@ -15,6 +15,7 @@ class System {
 
   // The server path to the root of the website.
   protected $siteroot;
+  public $config_file;
 
   // The twig environment instance for theming.
   public $twig;
@@ -35,7 +36,8 @@ class System {
    *   The server path to the root of the website.
    */
   public function __construct($siteroot) {
-    $this->siteroot = $siteroot;
+    $this->siteroot    = $siteroot;
+    $this->config_file = $this->siteroot . '/settings/perseus.php';
 
     // Instantiate system messages.
     if (!isset($_SESSION['messages'])) {
@@ -59,16 +61,15 @@ class System {
    * Initialize the system variables.
    */
   private function init($type = 'vars') {
-    $file = $this->siteroot . '/settings/perseus.php';
     $init = array();
 
-    if (file_exists($file)) {
-      include($file);
+    if (file_exists($this->config_file)) {
+      include($this->config_file);
       $init['vars'] = $vars;
       $init['db'] = $db;
     }
     else {
-      throw new Exception('Unable to load perseus settings at ' . $file . '.', SYSTEM_ERROR);
+      throw new Exception('Unable to load perseus settings at ' . $this->config_file . '.', SYSTEM_ERROR);
     }
 
     return ($type ? $init[$type] : $init);
@@ -156,12 +157,13 @@ class System {
   /**
    * Load a new service object.
    */
-  public function newService($type, $settings = array()) {
+  public function newService($type, array $settings = array()) {
     switch (strtolower($type)) {
       case 'csv':
         return new \Perseus\CSV($this, $settings);
         break;
 
+      case 'phpmail':
       case 'mail':
         return new \Perseus\PhpMail($this, $settings);
         break;
@@ -170,8 +172,13 @@ class System {
         return new \Perseus\Form($this, $settings);
         break;
 
+      case 'mysql':
       case 'db':
         return new \Perseus\MySQL($this, $settings);
+        break;
+
+      case 'test':
+        return new \Perseus\Test($this, $settings);
         break;
 
       case 'xml':

@@ -5,7 +5,7 @@
  */
 namespace Perseus;
 
-class Service {
+class Service implements ServiceInterface {
   // The system object managing the service.
   protected $system;
 
@@ -20,4 +20,18 @@ class Service {
     }
     catch(Exception $e){System::handleException($e);}
   }
+}
+
+/**
+ * Service Interface
+ */
+interface ServiceInterface {
+  /**
+   * Constructor
+   *
+   * @param $system
+   *   Each service must have a referencable system object to leverage in order
+   *   to perform its tasks.
+   */
+  public function __construct($system);
 }

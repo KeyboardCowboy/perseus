@@ -24,7 +24,7 @@ class PhpMail extends Service {
   /**
    * Constructor
    */
-  public function __construct($system) {
+  public function __construct($system, array $settings = array()) {
     parent::__construct($system);
   }
 

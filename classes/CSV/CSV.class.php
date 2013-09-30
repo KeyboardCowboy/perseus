@@ -22,8 +22,10 @@ class CSV {
   public $no_results = 'No data was found.';
 
   // Constructor
-  public function __construct($filepath) {
-    $this->filepath = $filepath;
+  public function __construct($system, array $settings = array()) {
+    parent::__construct($system);
+
+    $this->filepath = (isset($settings['filepath']) ? $settings['filepath'] : '');
 
     // Read the data out of the file.
     $this->read();
