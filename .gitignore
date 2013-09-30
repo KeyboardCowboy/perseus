@@ -1,2 +1,5 @@
 # Ignore items in Twig's theme cache
 theme/cache/*
+
+# Ignore separate tools
+tools
