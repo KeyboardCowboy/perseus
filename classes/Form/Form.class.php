@@ -26,8 +26,9 @@ class Form extends Service {
   /**
    * Constructor
    */
-  public function __construct($system, $settings) {
-    $this->system  = $system;
+  public function __construct($system, array $settings = array()) {
+    parent::__construct($system);
+
     $this->name    = (isset($settings['name']) ? $settings['name'] : uniqid());
     $this->action  = (isset($settings['action']) ? filter_xss($action) : filter_xss($_SERVER['PHP_SELF']));
     $this->method  = (isset($settings['method']) ? $method : 'POST');

@@ -18,9 +18,10 @@ class XMLParser {
    * @param $root_element
    *   The top level element for the XML structure in the format '<root/>'.
    */
-  public function __construct($system, $root = NULL) {
-    $this->system = $system;
-    $this->xml = new \SimpleXMLElement(($root ? $root : '<data/>'));
+  public function __construct($system, array $settings = array()) {
+    parent::__construct($system);
+
+    $this->xml = new \SimpleXMLElement((isset($settings['root']) ? $settings['root'] : '<data/>'));
   }
 
   /**
