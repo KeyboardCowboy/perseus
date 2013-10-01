@@ -9,37 +9,41 @@ class HtmlElement implements HtmlElementInterface {
   public $system;
   private $self_closing = FALSE;
 
-  public $type;
+  public $element;
   public $attributes = array();
   public $content = '';
 
   // The template to use for theming.
-  public $template;
+  public $build = array(
+    'template' => 'element',
+    'items' => array(),
+  );
 
   // Constructor
-  public function __construct($type, $attributes = array(), $content = '') {
-    $this->type = $type;
+  public function __construct($element, $attributes = array(), $content = '') {
+    $this->element = $element;
     $this->attributes = (array) $attributes;
-    $this->value = $value;
+    $this->content = $content;
   }
 
   /**
    * Set the closing type for this type of element.
    */
   private function setClosing() {
-    $this->self_closing = (in_array($this->type, array('area','base','br','col','command','embed','hr','img','input','keygen','link','meta','param','source','track','wbr')));
+    $this->self_closing = (in_array($this->element, array('area','base','br','col','command','embed','hr','img','input','keygen','link','meta','param','source','track','wbr')));
+  }
+
+  // Nest an item under this one.
+  public function addChild($name, $item) {
+    $this->build['items'][$name] = $item;
   }
 
   /**
    * Prepare the data for rendering.
    */
-  protected function prepare() {
-    $this->render_data = array(
-      'type' => $this->type,
-      'attributes' => $this->attributes,
-      'content' => $this->content,
-      'self_closing' => $this->setClosing(),
-    );
+  public function prepare() {
+    $this->self_closing = $this->setClosing();
+    $this->rendered = array();
   }
 
   /**
@@ -49,30 +53,18 @@ class HtmlElement implements HtmlElementInterface {
     // Prepare the data for rendering.
     $this->prepare();
 
-    return $this->system->theme($this->template, $this->render_data);
+    return $this->system->theme($this->build->template, $this);
   }
 }
 
 /**
  * Interface for creating HTML Element classes.
  */
-class HtmlElementInterface {
-  /**
-   * Constructor
-   *
-   * @param $type
-   *   The type of element to render.
-   * @param $attributes
-   *   An associative array of element attributes.
-   * @param $content
-   *   The content to place between the tags.
-   */
-  public function __construct($type, $attributes = array(), $content = ''){}
-
+interface HtmlElementInterface {
   /**
    * Prepare the data for rendering.
    */
-  protected function prepare() {}
+  function prepare();
 
   /**
    * Render the element.
@@ -80,5 +72,5 @@ class HtmlElementInterface {
    * @return $markup
    *   The HTML markup of the rendered element.
    */
-  public function render() {}
+  function render();
 }

@@ -408,16 +408,54 @@ class System {
    *   A renderable object.
    */
   public function render($object) {
+    $markup = '';
+
     try {
-      if (!property_exists($object, 'render')) {
+      // Prepare the object for rendering.
+      $object->prepare();
+      $this->_render($object);
+
+      // Compile the content rendered in each of the first level children.
+      /*foreach ($object->build['items'] as $item) {
+        $object->content .= $item->content;
+      }*/
+
+      pd($object);
+
+      return $this->theme($object->build['template'], (array) $object);
+
+      //return $markup;
+
+      /*if (!property_exists($object, 'render')) {
         $object->system = $this;
         return $object->render();
       }
       else {
         throw new Exception('Non-renderable object passed.', SYSTEM_ERROR);
-      }
+      }*/
     }
     catch(Exception $e) {System::handleException($e);}
+  }
+
+  private function _render($object) {
+    $content = '';
+
+    array_unshift($object->rendered, $object->content);
+    $object->content = implode(PHP_EOL, $object->rendered);
+
+    foreach ($object->build['items'] as $name => &$item) {
+      $item->prepare();
+
+      if (empty($item->build['items'])) {
+        $content = $this->theme($item->build['template'], (array) $item);
+      }
+      else {
+        $content = $this->_render($item);
+      }
+    }
+
+    $item->rendered = $content;
+    $object->rendered[] = $content;
   }
 }
 

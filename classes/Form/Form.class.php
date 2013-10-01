@@ -23,6 +23,12 @@ class Form extends Service {
   // Weight incrementer for unweighted form fields.
   private $weight = 0;
 
+  // Rendering data
+  public $build = array(
+    'template' => 'form/form',
+    'items' => array(),
+  );
+
   /**
    * Constructor
    */
@@ -38,51 +44,9 @@ class Form extends Service {
   /**
    * Add a form item to the form.
    */
-  public function addItem($type, $data, $weight = NULL) {
-    try {
-      // Make sure the field definition method exists.
-      $method = "build" . ucwords($type);
-      if (!method_exists($this, $method)) {
-        throw new Exception("Undefined form field type: {$type}", SYSTEM_ERROR);
-      }
-
-      // Make sure the form field has a name
-      if (!isset($data['name'])) {
-        throw new Exception("Name not provided for form field.", SYSTEM_ERROR);
-      }
-
-      // Default form field settings.
-      $defaults = array(
-        'label' => '',
-        'description' => '',
-        'options' => array(),
-        'attributes' => array('class' => array('form-item')),
-      );
-
-      // Add default values
-      $data += $defaults;
-
-      $item_default = array(
-        'weight' => (is_null($weight) ? $this->weight += 5 : $weight),
-        'name'   => $data['name'],
-      );
-
-      // Build the field
-      $field = $this->{$method}($data);
-
-      // Set field defaults
-      // @todo: move to HtmlElement object
-      if (is_array($field)) {
-        $field += $item_default;
-      }
-      elseif (is_object($field)) {
-        $field->mergeDefaults($item_default);
-      }
-
-      // Add the field to the form.
-      $this->fields[$data['name']] = $field;
-    }
-    catch(Exception $e) {System::handleException($e);}
+  public function addItem($name, $field) {
+    // Add the field to the form.
+    $this->build['items'][$name] = $field;
   }
 
   /**
@@ -96,19 +60,10 @@ class Form extends Service {
   }
 
   /**
-   * Render the form.
+   * Prepare the form data for rendering.
    */
-  public function render() {
-    $out = '';
-
-    //pd($this->fields);
-
-    try {
-      $vars['output'] = $this->_prepareRender($this->fields);
-    }
-    catch(Exception $e) {System::handleException($e);}
-
-    $vars['attributes'] = array(
+  public function prepare() {
+    $this->attributes = array(
       'method'  => $this->method,
       'action'  => $this->action,
       'enctype' => $this->enctype,
@@ -116,7 +71,7 @@ class Form extends Service {
       'id'      => unique_id($this->name),
     );
 
-    return $this->system->theme('form/form', $vars);
+    // Sort the fields!
   }
 
   /**
@@ -186,7 +141,6 @@ class FormItem {
   public $description;
   public $placeholder;
   public $options;
-  public $wrapper = 'form-item';
   public $weight;
   public $validators = array();
 
@@ -197,7 +151,10 @@ class FormItem {
   public $wrapper_attributes = array();
 
   // The processed data used to render the templates.
-  public $data = array();
+  public $build = array(
+    'template' => 'form/form-item',
+    'items' => array(),
+  );
 
   // Constructor
   public function __construct($type, $name) {
@@ -205,13 +162,20 @@ class FormItem {
     $this->name = $name;
   }
 
-  // Nest a form item under this one.
-  public function addItem($name, $item, $weight = 0) {
-    $this->data[$name] = $item;
+  /**
+   * Add a validation callback.
+   */
+  public function addValidator($callback) {
+    $this->validators[] = $callback;
   }
 
   // Prepare the data to be rendered.
-  protected function prepare() {
+  public function prepare() {
+    // Check the placeholder and other attributes.
+    if ($this->placeholder) {
+      $this->attributes['placeholder'] = $this->placeholder;
+    }
+
     // Build the Label
     if ($this->label) {
       $label = new HtmlElement('label', $this->label_attributes);
@@ -232,9 +196,17 @@ class FormItem {
 
     // Build the form element
     $class = "FormElement" . ucwords($this->type);
-    $field = (class_exists($class) ? new $class($this->attributes) : new FormElement($this->type, $this->attributes));
+    $field = (class_exists($class) ? new $class($this->name, $this->attributes) : new FormElement('input', $this->type, $this->attributes));
     $field->weight = 1;
     $this->addItem('field', $field);
+  }
+
+  /**
+   * Render the field item.
+   */
+  public function render() {
+    // Prepare the data.
+    $this->prepare();
   }
 }
 
@@ -242,36 +214,16 @@ class FormItem {
  * Extend HTML Element to manage form elements.
  */
 class FormElement extends HtmlElement {
-  public $validators = array();
   public $weight = NULL;
-  public $name   = NULL;
+  public $name;
+  public $type;
 
   // Constructor
-  public function __construct($type, $attributes = array()) {
-    parent::__construct($type, $attributes);
+  public function __construct($element, $type, $name, $attributes = array()) {
+    parent::__construct($element, $attributes);
 
-    // Make sure the field definition method exists.
-    $method = "build" . ucwords($type);
-    if (!method_exists($this, $method)) {
-      throw new Exception("Undefined form field type: {$type}", SYSTEM_ERROR);
-    }
-
-    // Build the field
-    $this->{$method}();
-  }
-
-  /**
-   * Set the placeholder attribute.
-   */
-  public function setPlaceholder($data) {
-    if (isset($data['placeholder'])) {
-      if ($data['placeholder'] === TRUE && !empty($data['label'])) {
-        $this->attributes['placeholder'] = check_plain($data['label']);
-      }
-      elseif (is_string($data['placeholder'])) {
-        $this->attribute['placeholder'] = check_plain($data['placeholder']);
-      }
-    }
+    $this->type = $type;
+    $this->name = $name;
   }
 
   /**
@@ -288,7 +240,10 @@ class FormElement extends HtmlElement {
   /**
    * Prepare the item for rendering.
    */
-  protected function prepare() {
+  public function prepare() {
+    $this->attributes['type'] = $this->type;
+    $this->attributes['name'] = $this->name;
+
     parent::prepare();
   }
 
@@ -411,42 +366,6 @@ class FormElement extends HtmlElement {
   protected function buildTable(array $data) {
     return $this->system->theme('table', $data);
   }
-
-  /**
-   * Build a text field.
-   */
-  protected function buildText(array $data) {
-    $field = new FormItemText($data);
-
-
-    $input = new FormElement('input', $data['attributes']);
-    $input->attributes['type'] = 'text';
-    $input->attributes['name'] = $data['name'];
-    $input->weight = 1;
-
-    // Construct the elements
-    if (!empty($data['label'])) {
-      $label = new FormElement('label');
-      $label->attributes['for'] = $data['name'];
-      $label->value = $data['label'];
-      $label->weight = 0;
-    }
-
-    $input->setPlaceholder($data);
-
-    $elements = array(
-      'label' => $label,
-      'input' => $input,
-    );
-
-    return array(
-      'wrapper' => 'div',
-      'attributes' => array(
-        'class' => array('form-text'),
-      ),
-      'elements' => $elements,
-    );
-  }
 }
 
 /**
@@ -457,19 +376,19 @@ class FormElementText extends FormElement {
   public $maxlength;
 
   // Constructor
-  public function __construct($attributes = array()) {
-    parent::__construct('text', $attributes);
+  public function __construct($name, $attributes = array()) {
+    parent::__construct('input', 'text', $name, $attributes);
   }
 
   /**
    * Prepare the data
    */
-  protected function prepare() {
+  public function prepare() {
     if ($this->size) {
-      $this->render_data['attributes']['size'] = $this->size;
+      $this->attributes['size'] = $this->size;
     }
     if ($this->maxlength) {
-      $this->render_data['attributes']['maxlength'] = $this->maxlength;
+      $this->attributes['maxlength'] = $this->maxlength;
     }
 
     // Pass it on to the parent classes.
