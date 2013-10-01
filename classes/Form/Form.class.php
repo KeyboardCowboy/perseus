@@ -38,7 +38,7 @@ class Form extends Service {
   /**
    * Add a form item to the form.
    */
-  public function addItem($type, $data, $weight = 0) {
+  public function addItem($type, $data, $weight = NULL) {
     try {
       // Make sure the field definition method exists.
       $method = "build" . ucwords($type);
@@ -49,11 +49,6 @@ class Form extends Service {
       // Make sure the form field has a name
       if (!isset($data['name'])) {
         throw new Exception("Name not provided for form field.", SYSTEM_ERROR);
-      }
-
-      // Autoincrememnt a weight for the item if not provided.
-      if (!$weight) {
-        $weight = $this->weight =+ 5;
       }
 
       // Default form field settings.
@@ -67,8 +62,13 @@ class Form extends Service {
       // Add default values
       $data += $defaults;
 
+      $item_default = array(
+        'weight' => (is_null($weight) ? $this->weight += 5 : $weight),
+        'name'   => $data['name'],
+      );
+
       // Create the item.
-      $this->fields["{$weight}:{$data['name']}"] = $this->{$method}($data);
+      $this->fields[$data['name']] = $this->{$method}($data) + $item_default;
     }
     catch(Exception $e) {System::handleException($e);}
   }
@@ -176,18 +176,47 @@ class Form extends Service {
   }
 
   /**
+   * Build a text field.
+   */
+  protected function buildText(array $data) {
+    $input = new FormElement('input');
+    $input->attributes = $data['attributes'];
+    $input->attributes['type'] = 'text';
+    $input->attributes['name'] = $data['name'];
+    $input->weight = 1;
+
+    // Construct the elements
+    if (!empty($data['label'])) {
+      $label = new FormElement('label');
+      $label->attributes['for'] = $data['name'];
+      $label->value = $data['label'];
+      $label->weight = 0;
+    }
+
+    $input->setPlaceholder($data);
+
+    $elements = array(
+      'label' => $label,
+      'input' => $input,
+    );
+
+    return array(
+      'wrapper' => 'div',
+      'attributes' => array(
+        'class' => array('form-text'),
+      ),
+      'elements' => $elements,
+    );
+  }
+
+  /**
    * Render the form.
    */
   public function render() {
     $out = '';
 
     try {
-      ksort($this->fields);
-
-      foreach ($this->fields as $weight => $field) {
-        list(,$name) = explode(':', $weight);
-        $out .= $field;
-      }
+      $out = $this->_prepareRender($this->fields);
     }
     catch(Exception $e) {System::handleException($e);}
 
@@ -202,4 +231,85 @@ class Form extends Service {
 
     return $this->system->theme('form/form', $vars);
   }
+
+  /**
+   * Helper to recursively render fields.
+   */
+  private function _prepareRender($fields) {
+    $markup = '';
+    $_fields = array();
+
+    // Sort the fields
+    foreach ($fields as $field) {
+      $field_array = (array) $field;
+      $weight = (isset($field_array['weight']) ? $field_array['weight'] : 0);
+      $_fields[$weight + 10000000] = $field;
+    }
+
+    ksort($_fields);
+
+    // Recurse through the items and theme each element.
+    foreach ($_fields as $key => $field) {
+      //list($weight,$name) = explode(':', $key);
+
+      // The field may be an HtmlElement Object, an array of fields or a
+      // rendered field.
+      if (is_object($field)) {
+        $markup .= $this->system->render($field);
+      }
+      elseif (is_string($field)) {
+        $markup .= $field;
+      }
+      elseif (is_array($field)) {
+        if (!empty($field['elements']) && isset($field['wrapper'])) {
+          $wrapper = new HtmlElement($field['wrapper']);
+          $wrapper->value = $this->_prepareRender($field['elements']);
+
+          if (isset($field['attributes']) && is_array($field['attributes'])) {
+            $wrapper->attributes = $field['attributes'] + array(
+              'id' => unique_id("form-item-{$field['name']}"),
+              'class' => array('form-item'),
+            );
+          }
+
+          $markup .= $this->system->render($wrapper);
+        }
+        elseif (!empty($field['elements'])) {
+          $markup .= $this->_prepareRender($field['elements']);
+        }
+        else {
+          $markup .= $this->_prepareRender($field);
+        }
+      }
+    }
+
+    return $markup;
+  }
 }
+
+/**
+ * Extend HTML Element to manage form elements.
+ */
+class FormElement extends HtmlElement {
+  public $validators = array();
+
+  // Constructor
+  public function __construct($type) {
+    parent::__construct($type);
+  }
+
+  /**
+   * Set the placeholder attribute.
+   */
+  public function setPlaceholder($data) {
+    if (isset($data['placeholder'])) {
+      if ($data['placeholder'] === TRUE && !empty($data['label'])) {
+        $this->attributes['placeholder'] = check_plain($data['label']);
+      }
+      elseif (is_string($data['placeholder'])) {
+        $this->attributes['placeholder'] = check_plain($data['placeholder']);
+      }
+    }
+  }
+}
+

@@ -188,6 +188,13 @@ class System {
   }
 
   /**
+   * Build a new HTML Element.
+   */
+  public function newElement($type) {
+    return new HtmlElement($this, $type);
+  }
+
+  /**
    * Include a file.
    */
   static function fileInclude($path) {
@@ -392,6 +399,25 @@ class System {
    */
   static function themeProcessVars($file, &$vars) {
     include($file);
+  }
+
+  /**
+   * Render an object using this system's rendering settings.
+   *
+   * @param $object
+   *   A renderable object.
+   */
+  public function render($object) {
+    try {
+      if (!property_exists($object, 'render')) {
+        $object->system = $this;
+        return $object->render();
+      }
+      else {
+        throw new Exception('Non-renderable object passed.', SYSTEM_ERROR);
+      }
+    }
+    catch(Exception $e) {System::handleException($e);}
   }
 }
 

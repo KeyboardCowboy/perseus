@@ -21,8 +21,26 @@ function perseus_autoload($class) {
   // Perseus classes
   if (strpos($class, 'Perseus') === 0) {
     $parts = explode('\\', $class);
-    $class = end($parts);
-    $path = "classes/{$class}/{$class}.class.php";
+
+    // Remove the 'Perseus' namespace
+    array_shift($parts);
+
+    // Grab the classname
+    $class = array_pop($parts);
+
+    // Use the remaining part of the namespace to determine the location of the
+    // class
+    $type = reset($parts);
+    switch (strtolower($type)) {
+      case 'tools':
+        $path = "tools/{$class}/{$class}.class.php";
+        break;
+
+      default:
+        $path = "classes/{$class}/{$class}.class.php";
+        break;
+    }
+
     require $path;
   }
 
