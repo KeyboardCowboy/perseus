@@ -4,31 +4,23 @@ namespace Perseus;
 /**
  * Define an HTML element to be rendered.
  */
-class HtmlElement {
+class HtmlElement implements HtmlElementInterface {
   // System object used to handle rendering.
   public $system;
   private $self_closing = FALSE;
 
   public $type;
   public $attributes = array();
-  public $value = '';
+  public $content = '';
+
+  // The template to use for theming.
+  public $template;
 
   // Constructor
-  public function __construct($type, $attributes = array(), $value = '') {
+  public function __construct($type, $attributes = array(), $content = '') {
     $this->type = $type;
     $this->attributes = (array) $attributes;
     $this->value = $value;
-
-    $this->setClosing();
-  }
-
-  /**
-   * Set the attributes.
-   *
-   * @todo: Implement attribute filtering and protect the property.
-   */
-  public function setAttributes() {
-
   }
 
   /**
@@ -39,16 +31,54 @@ class HtmlElement {
   }
 
   /**
+   * Prepare the data for rendering.
+   */
+  protected function prepare() {
+    $this->render_data = array(
+      'type' => $this->type,
+      'attributes' => $this->attributes,
+      'content' => $this->content,
+      'self_closing' => $this->setClosing(),
+    );
+  }
+
+  /**
    * Render the element.
    */
   public function render() {
-    $data = array(
-      'type' => $this->type,
-      'attributes' => $this->attributes,
-      'value' => $this->value,
-      'self_closing' => $this->self_closing,
-    );
+    // Prepare the data for rendering.
+    $this->prepare();
 
-    return $this->system->theme('element', $data);
+    return $this->system->theme($this->template, $this->render_data);
   }
+}
+
+/**
+ * Interface for creating HTML Element classes.
+ */
+class HtmlElementInterface {
+  /**
+   * Constructor
+   *
+   * @param $type
+   *   The type of element to render.
+   * @param $attributes
+   *   An associative array of element attributes.
+   * @param $content
+   *   The content to place between the tags.
+   */
+  public function __construct($type, $attributes = array(), $content = ''){}
+
+  /**
+   * Prepare the data for rendering.
+   */
+  protected function prepare() {}
+
+  /**
+   * Render the element.
+   *
+   * @return $markup
+   *   The HTML markup of the rendered element.
+   */
+  public function render() {}
 }
