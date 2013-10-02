@@ -45,7 +45,7 @@ class Form extends Service {
 
     if ($wrap) {
       $wrapper = new HtmlElement('div');
-      $wrapper->attributes['class'][] = 'test'; //= array('form-item', $name, $field->type);
+      $wrapper->addCssClass(array('form-item', $name, $field->type));
       $wrapper->_build['template'] = 'form/form-item';
       $wrapper->_build['children'] = $field->_build['children'];
       $this->form->_build['children'][$name] = $wrapper;
@@ -54,8 +54,6 @@ class Form extends Service {
       // Add the field to the form.
       $this->form->_build['children'][$name] = $field->_build['children'];
     }
-
-    pd($this->form);
   }
 
   /**

@@ -7,7 +7,7 @@ namespace Perseus;
 class HtmlElement implements HtmlElementInterface {
   // System object used to handle rendering.
   public $system;
-  private $self_closing = FALSE;
+  public $self_closing = FALSE;
 
   public $element;
   public $attributes = array();
@@ -39,22 +39,29 @@ class HtmlElement implements HtmlElementInterface {
     $this->_build['children'][$name] = $item;
   }
 
+  // Helper to add a CSS Class
+  public function addCssClass($class) {
+    if (!isset($this->attributes['class'])) {
+      $this->attributes['class'] = array();
+    }
+    $this->attributes['class'] += (array) $class;
+  }
+
   /**
    * Prepare the data for rendering.
    */
   public function prepare() {
-    $this->self_closing = $this->setClosing();
-    $this->_rendered = array();
-  }
+    $this->setClosing();
 
-  /**
-   * Render the element.
-   */
-  public function render() {
-    // Prepare the data for rendering.
-    $this->prepare();
-
-    return $this->system->theme($this->_build->template, $this);
+    // Flatten the children into the render data.
+    foreach ($this->_build['children'] as $name => $child) {
+      if (property_exists($this, $name)) {
+        $this->child_{$name} = $child;
+      }
+      else {
+        $this->{$name} = $child;
+      }
+    }
   }
 }
 
@@ -66,12 +73,4 @@ interface HtmlElementInterface {
    * Prepare the data for rendering.
    */
   function prepare();
-
-  /**
-   * Render the element.
-   *
-   * @return $markup
-   *   The HTML markup of the rendered element.
-   */
-  function render();
 }

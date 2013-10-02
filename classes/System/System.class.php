@@ -427,7 +427,11 @@ class System {
     // Recurse through the youngest children first
     if (!empty($parent->_build['children'])) {
       // Sort the children
+      $sorted = array();
       foreach ($parent->_build['children'] as $child_name => $child) {
+        while (array_key_exists($child->weight, $sorted)) {
+          $child->weight += 0.01;
+        }
         $sorted[$child->weight] = $child;
       }
       ksort($sorted);

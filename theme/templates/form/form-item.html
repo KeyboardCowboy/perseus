@@ -1,7 +1,9 @@
-{% if label is not empty %}
-<label {{ html_attributes(label.attributes) }}>{{ label.content }}</label>
-{% endif %}
-{{ field }}
-{% if desc is not empty %}
-<div {{ html_attributes(desc.attributes) }}>{{ desc.content }}</div>
-{% endif %}
+<div {{ html_attributes(attributes) }}>
+  {% if label._content %}
+  <label {{ html_attributes(label.attributes) }}>{{ label._content }}</label>
+  {% endif %}
+  {{ field.content }}
+  {% if desc._content %}
+  <div {{ html_attributes(desc.attributes) }}>{{ desc._content }}</div>
+  {% endif %}
+</div>
