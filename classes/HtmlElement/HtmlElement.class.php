@@ -12,11 +12,12 @@ class HtmlElement implements HtmlElementInterface {
   public $element;
   public $attributes = array();
   public $content = '';
+  public $weight = 0;
 
   // The template to use for theming.
-  public $build = array(
+  public $_build = array(
     'template' => 'element',
-    'items' => array(),
+    'children' => array(),
   );
 
   // Constructor
@@ -35,7 +36,7 @@ class HtmlElement implements HtmlElementInterface {
 
   // Nest an item under this one.
   public function addChild($name, $item) {
-    $this->build['items'][$name] = $item;
+    $this->_build['children'][$name] = $item;
   }
 
   /**
@@ -43,7 +44,7 @@ class HtmlElement implements HtmlElementInterface {
    */
   public function prepare() {
     $this->self_closing = $this->setClosing();
-    $this->rendered = array();
+    $this->_rendered = array();
   }
 
   /**
@@ -53,7 +54,7 @@ class HtmlElement implements HtmlElementInterface {
     // Prepare the data for rendering.
     $this->prepare();
 
-    return $this->system->theme($this->build->template, $this);
+    return $this->system->theme($this->_build->template, $this);
   }
 }
 

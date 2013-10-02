@@ -408,54 +408,42 @@ class System {
    *   A renderable object.
    */
   public function render($object) {
-    $markup = '';
-
     try {
       // Prepare the object for rendering.
       $object->prepare();
       $this->_render($object);
-
-      // Compile the content rendered in each of the first level children.
-      /*foreach ($object->build['items'] as $item) {
-        $object->content .= $item->content;
-      }*/
-
-      pd($object);
-
-      return $this->theme($object->build['template'], (array) $object);
-
-      //return $markup;
-
-      /*if (!property_exists($object, 'render')) {
-        $object->system = $this;
-        return $object->render();
-      }
-      else {
-        throw new Exception('Non-renderable object passed.', SYSTEM_ERROR);
-      }*/
+      return $object->content;
     }
     catch(Exception $e) {System::handleException($e);}
   }
 
-  private function _render($object) {
-    $content = '';
+  /**
+   * Helper to recursively theme elements.
+   */
+  private function _render($parent) {
+    // Store the original content in a separate property for reference.
+    $parent->_content = $parent->content;
 
-    array_unshift($object->rendered, $object->content);
-    $object->content = implode(PHP_EOL, $object->rendered);
-
-    foreach ($object->build['items'] as $name => &$item) {
-      $item->prepare();
-
-      if (empty($item->build['items'])) {
-        $content = $this->theme($item->build['template'], (array) $item);
+    // Recurse through the youngest children first
+    if (!empty($parent->_build['children'])) {
+      // Sort the children
+      foreach ($parent->_build['children'] as $child_name => $child) {
+        $sorted[$child->weight] = $child;
       }
-      else {
-        $content = $this->_render($item);
+      ksort($sorted);
+
+      // Render each child recursively
+      foreach ($sorted as &$child) {
+        $child->prepare();
+        $this->_render($child);
+
+        // Append each child's content to the parent for inheritence.
+        $parent->content .= $child->content;
       }
     }
 
-    $item->rendered = $content;
-    $object->rendered[] = $content;
+    // Theme the item.
+    $parent->content = $this->theme($parent->_build['template'], (array) $parent);
   }
 }
 

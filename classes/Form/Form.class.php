@@ -6,6 +6,8 @@
 namespace Perseus;
 
 class Form extends Service {
+  private $form;
+
   // A unique name of the form.
   protected $name;
 
@@ -14,26 +16,20 @@ class Form extends Service {
   private $method;
   private $enctype = '';
 
-  // Form fields
-  private $fields = array();
-
   // Default field values
   protected $defaults = array();
 
   // Weight incrementer for unweighted form fields.
   private $weight = 0;
 
-  // Rendering data
-  public $build = array(
-    'template' => 'form/form',
-    'items' => array(),
-  );
-
   /**
    * Constructor
    */
   public function __construct($system, array $settings = array()) {
     parent::__construct($system);
+
+    $this->form = new HtmlElement('form');
+    $this->form->_build['template'] = 'form/form';
 
     $this->name    = (isset($settings['name']) ? $settings['name'] : uniqid());
     $this->action  = (isset($settings['action']) ? filter_xss($action) : filter_xss($_SERVER['PHP_SELF']));
@@ -44,9 +40,22 @@ class Form extends Service {
   /**
    * Add a form item to the form.
    */
-  public function addItem($name, $field) {
-    // Add the field to the form.
-    $this->build['items'][$name] = $field;
+  public function addField($name, FormItem $field, $wrap = TRUE) {
+    $field->prepare();
+
+    if ($wrap) {
+      $wrapper = new HtmlElement('div');
+      $wrapper->attributes['class'][] = 'test'; //= array('form-item', $name, $field->type);
+      $wrapper->_build['template'] = 'form/form-item';
+      $wrapper->_build['children'] = $field->_build['children'];
+      $this->form->_build['children'][$name] = $wrapper;
+    }
+    else {
+      // Add the field to the form.
+      $this->form->_build['children'][$name] = $field->_build['children'];
+    }
+
+    pd($this->form);
   }
 
   /**
@@ -63,15 +72,22 @@ class Form extends Service {
    * Prepare the form data for rendering.
    */
   public function prepare() {
-    $this->attributes = array(
+    $this->form->attributes = array(
       'method'  => $this->method,
       'action'  => $this->action,
       'enctype' => $this->enctype,
       'name'    => $this->name,
       'id'      => unique_id($this->name),
     );
+  }
 
-    // Sort the fields!
+  /**
+   * Since the FORM is an extension of a service and not of an element, we need
+   * to implement our own rendering method.
+   */
+  public function render() {
+    $this->prepare();
+    return $this->system->render($this->form);
   }
 
   /**
@@ -150,12 +166,6 @@ class FormItem {
   public $description_attributes = array();
   public $wrapper_attributes = array();
 
-  // The processed data used to render the templates.
-  public $build = array(
-    'template' => 'form/form-item',
-    'items' => array(),
-  );
-
   // Constructor
   public function __construct($type, $name) {
     $this->type = $type;
@@ -167,6 +177,13 @@ class FormItem {
    */
   public function addValidator($callback) {
     $this->validators[] = $callback;
+  }
+
+  /**
+   * Add an element to the FormItem
+   */
+  public function addItem($name, $item) {
+    $this->_build['children'][$name] = $item;
   }
 
   // Prepare the data to be rendered.
@@ -199,14 +216,6 @@ class FormItem {
     $field = (class_exists($class) ? new $class($this->name, $this->attributes) : new FormElement('input', $this->type, $this->attributes));
     $field->weight = 1;
     $this->addItem('field', $field);
-  }
-
-  /**
-   * Render the field item.
-   */
-  public function render() {
-    // Prepare the data.
-    $this->prepare();
   }
 }
 
@@ -367,6 +376,25 @@ class FormElement extends HtmlElement {
     return $this->system->theme('table', $data);
   }
 }
+
+/**
+ * Radio Field
+ */
+class FormElementRadio extends FormElement {
+  // Constructor
+  public function __construct($name, $attributes = array()) {
+    parent::__construct('input', 'radio', $name, $attributes);
+  }
+
+  /**
+   * Prepare the data
+   */
+  public function prepare() {
+    // Pass it on to the parent classes.
+    parent::prepare();
+  }
+}
+
 
 /**
  * Text Field
