@@ -9,7 +9,13 @@
 /**
  * Define system variables.
  */
-$vars = array();
+$vars = array(
+  'basepath' => '/',
+  'krumo' => array(
+    'enabled' => TRUE,
+    'skin'    => 'orange',
+  ),
+);
 
 /**
  * Configure databases.
