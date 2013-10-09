@@ -155,7 +155,7 @@ class FormItem {
   public $description;
   public $placeholder;
   public $options;
-  public $weight;
+  public $weight = 0;
   public $validators = array();
 
   // Attributes
@@ -421,3 +421,24 @@ class FormElementText extends FormElement {
     parent::prepare();
   }
 }
+
+/**
+ * Submit Field
+ */
+class FormElementSubmit extends FormElement {
+  public $value;
+
+  // Constructor
+  public function __construct($name, $attributes = array()) {
+    parent::__construct('input', 'submit', $name, $attributes);
+  }
+
+  /**
+   * Prepare the data
+   */
+  public function prepare() {
+    $this->attributes['value'] = $this->value;
+    parent::prepare();
+  }
+}
+
