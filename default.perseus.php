@@ -7,13 +7,18 @@
  * 2. Ensure it is readable only by your webserver.
  */
 /**
- * Define system variables.
+ * Define system variables.  These variables are required for the system to
+ * operate.  DO NOT delete or rename them.
  */
 $vars = array(
   'basepath' => '/',
   'krumo' => array(
     'enabled' => TRUE,
     'skin'    => 'orange',
+  ),
+  'twig' => array(
+    'cache' => FALSE, //PROOT . '/theme/cache'
+    'autoescape' => FALSE,
   ),
 );
 
