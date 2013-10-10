@@ -150,7 +150,7 @@ class System {
         file_put_contents("$path/krumo.ini", $content);
 
         // Include the Krumo class
-        include("{$path}/class.krumo.php");
+        include_once("{$path}/class.krumo.php");
       }
 
       throw new PhpErrorException($errno, $errstr, $errfile, $errline, $krumo['enabled']);

@@ -42,10 +42,27 @@ class PhpErrorException extends Exception {
 
     if ($krumo) {
       $backtrace = debug_backtrace();
+      // Remove exception handler
       array_shift($backtrace);
 
-      $backtrace = Debug::captureKrumoOutput($backtrace);
-      System::setMessage($backtrace, SYSTEM_ERROR);
+      // Remove error handler
+      array_shift($backtrace);
+
+      // Give the keys a better context
+      $_backtrace = array();
+      $i = 0;
+      foreach (array_reverse($backtrace) as $item) {
+        $key = $i++ . " ";
+        if (isset($item['class'])) {
+          $key .= $item['class'] . ":";
+        }
+        $key .= $item['function'];
+
+        $_backtrace[$key] = $item;
+      }
+
+      $message = Debug::captureKrumoOutput($_backtrace);
+      System::setMessage($message, SYSTEM_ERROR);
     }
   }
 }
