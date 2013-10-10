@@ -10,6 +10,9 @@ session_start();
 
 spl_autoload_register('perseus_autoload');
 
+// Load error/exception handlers.
+require_once(PROOT . '/classes/Exception/Exception.class.php');
+
 // Bootstrap basic system tools and variables.
 require_once(PROOT . '/classes/System/System.class.php');
 

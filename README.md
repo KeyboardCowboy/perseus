@@ -10,6 +10,8 @@ Version 3 introduces the Twig theming system and PHP namespaces.
 ### Requirements
 - PHP 5.3.0 or greater
 
+### Included Libraries
+- Krumo 2.0 for debugging
 
 ### Classes
 

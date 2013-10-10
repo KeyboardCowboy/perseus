@@ -401,11 +401,18 @@ function url($path = NULL, array $options = array()) {
 }
 
 /**
- * Alias for debug var dump.
+ * Aliases for debug var dump.
  */
 function pd($var) {
   \Perseus\Debug::dump($var);
 }
+function dd($var) {
+  \Perseus\Debug::dump($var);
+}
+function kd($var) {
+  \Perseus\Debug::kdump($var);
+}
+
 
 /**
  * Generate a unique, machine-safe ID.
