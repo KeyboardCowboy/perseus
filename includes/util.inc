@@ -404,21 +404,26 @@ function url($path = NULL, array $options = array()) {
  * Aliases for debug var dump.
  */
 function pd($var) {
-  \Perseus\Debug::dump($var);
+  // Legacy function.
+  dd($var);
 }
-function dd($var) {
-  \Perseus\Debug::dump($var);
+function dd($var, $name = NULL) {
+  \Perseus\System\Debug::dump($var, $name);
 }
-function kd($var) {
-  \Perseus\Debug::kdump($var);
+function kd($var, $name = NULL) {
+  \Perseus\System\Debug::kdump($var, $name);
 }
-
+function mdd($var, $name = NULL) {
+  \Perseus\System\Debug::mdump($var, $name);
+}
+function mkd($var, $name = NULL) {
+  \Perseus\System\Debug::mkdump($var, $name);
+}
 
 /**
  * Generate a unique, machine-safe ID.
  *
  * Borrowed from Drupal.
- *
  */
 function unique_id($string) {
   static $seen_ids_init;
@@ -473,4 +478,23 @@ function unique_id($string) {
   }
 
   return $id;
+}
+
+/**
+ * Parse an array into an ini file string.
+ */
+function parse_ini_array($array, $i = 0) {
+  $str = "";
+
+  foreach ($array as $k => $v){
+    if (is_array($v)) {
+      $str .= str_repeat(" ", $i * 2) . "[$k]" . PHP_EOL;
+      $str .= parse_ini_array($v, $i + 1);
+    }
+    else {
+      $str .= str_repeat(" ", $i * 2) . "$k = $v" . PHP_EOL;
+    }
+  }
+
+  return $str;
 }

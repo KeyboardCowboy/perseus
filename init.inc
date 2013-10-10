@@ -11,12 +11,12 @@ session_start();
 spl_autoload_register('perseus_autoload');
 
 // Load error/exception handlers.
-require_once(PROOT . '/classes/Exception/Exception.class.php');
+//require_once(PROOT . '/classes/Exception/Exception.class.php');
 
-// Bootstrap basic system tools and variables.
-require_once(PROOT . '/classes/System/System.class.php');
+// Load basic system tools and variables.
+require_once(PROOT . '/system/System/System.class.php');
 
-// Bootstrap common utilities required by other bootstrap phases.
+// Load common utilities required by other bootstrap phases.
 require_once(PROOT . '/includes/util.inc');
 
 // Autoloading router
@@ -31,25 +31,15 @@ function perseus_autoload($class) {
     // Grab the classname
     $class = array_pop($parts);
 
-    // Use the remaining part of the namespace to determine the location of the
-    // class
-    $type = reset($parts);
-    switch (strtolower($type)) {
-      case 'tools':
-        $path = "tools/{$class}/{$class}.class.php";
-        break;
-
-      default:
-        $path = "classes/{$class}/{$class}.class.php";
-        break;
+    // Create the path from the namespace.
+    if (is_file($file = PROOT . '/' . strtolower(implode('/', $parts)) . "/$class/$class.class.php")) {
+      require $file;
     }
-
-    require $path;
   }
 
   // Twig classes (@see Autoloader.php)
   elseif (strpos($class, 'Twig') === 0) {
-    if (is_file($file = dirname(__FILE__) . '/theme/twig/lib/' . str_replace(array('_', "\0"), array('/', ''), $class).'.php')) {
+    if (is_file($file = PROOT . '/theme/twig/lib/' . str_replace(array('_', "\0"), array('/', ''), $class).'.php')) {
       require $file;
     }
   }
