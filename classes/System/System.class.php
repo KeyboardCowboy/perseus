@@ -24,7 +24,7 @@ class System {
   protected $themes = array();
 
   // Configuration settings
-  private $vars;
+  private $config;
 
   // Site settings
   public $settings;
@@ -39,46 +39,47 @@ class System {
     $this->siteroot    = $siteroot;
     $this->config_file = $this->siteroot . '/settings/perseus.php';
 
-    // Instantiate system messages.
-    if (!isset($_SESSION['messages'])) {
-      $_SESSION['messages'] = array();
-    }
-
+    // Initialize subsystems
     try {
-      // Load the system configuration vars.
-      $this->vars = $this->init('vars');
-
-      // Load the system settings.
-      $this->loadSettings();
-
-      // Register theme directories.
-      $this->registerThemes();
+      $this->initMessages();
+      $this->initConfig();
+      $this->initSettings();
+      $this->initErrorHandler();
+      $this->initTheme();
     }
     catch (Exception $e) {$this->handleException($e);}
   }
 
   /**
-   * Initialize the system variables.
+   * Initialize the messaging system.
    */
-  private function init($type = 'vars') {
+  private function initMessages() {
+    // Instantiate system messages.
+    if (!isset($_SESSION['messages'])) {
+      $_SESSION['messages'] = array();
+    }
+  }
+
+  /**
+   * Initialize the system configuration variables.
+   */
+  private function initConfig() {
     $init = array();
 
     if (file_exists($this->config_file)) {
       include($this->config_file);
-      $init['vars'] = $vars;
-      $init['db'] = $db;
+      $this->config = $vars;
     }
     else {
       throw new Exception('Unable to load perseus settings at ' . $this->config_file . '.', SYSTEM_ERROR);
     }
-
-    return ($type ? $init[$type] : $init);
   }
+
 
   /**
    * Get the site settings from the settings.php file.
    */
-  private function loadSettings() {
+  private function initSettings() {
     // Ensure the file exists
     $file = $this->siteroot . '/settings/settings.php';
     $settings = array();
@@ -87,6 +88,74 @@ class System {
       include($file);
       $this->settings = $settings;
     }
+  }
+
+  /**
+   * Initialize the error handling system.
+   */
+  private function initErrorHandler() {
+    set_error_handler(array($this, 'handleErrors'));
+  }
+
+  /**
+   * Initialize the theme system.
+   */
+  private function initTheme() {
+    $templates = array();
+    $settings = $this->config['twig'];
+
+    // First, the default theme
+    $this->themes[] = PROOT . '/theme';
+    $templates[] = PROOT . '/theme/templates';
+
+    // Next, site overrides
+    $site_theme = $this->siteroot . '/theme';
+    if (file_exists($site_theme)) {
+      $this->themes[] = $site_theme;
+      $templates[] = "{$site_theme}/templates";
+    }
+
+    // Instantiate Twig
+    $loader = new \Twig_Loader_Filesystem(array_reverse($templates));
+    $this->twig = new \Twig_Environment($loader, $settings);
+
+    // Add HTML Attributes function to Twig
+    $function = new \Twig_SimpleFunction('html_attributes', function(array $attributes = array()) {
+      foreach ($attributes as $attribute => &$data) {
+        $data = implode(' ', (array) $data);
+        $data = $attribute . '="' . check_plain($data) . '"';
+      }
+      return $attributes ? ' ' . implode(' ', $attributes) : '';
+    });
+    $this->twig->addFunction($function);
+  }
+
+  /**
+   * Handle PHP errors thrown through our custom PHP Error Handler.
+   */
+  public function handleErrors($errno, $errstr, $errfile, $errline) {
+    try {
+      $krumo = $this->config['krumo'];
+
+      // Load the Krumo library.
+      if ($krumo['enabled']) {
+        $path = PROOT . '/includes/krumo';
+
+        // Write the .ini file
+        $ini = array(
+          'skin' => array('selected' => $this->config['krumo']['skin']),
+          'css'  => array('url' => $path),
+        );
+        $content = self::parseIniArray($ini);
+        file_put_contents("$path/krumo.ini", $content);
+
+        // Include the Krumo class
+        include("{$path}/class.krumo.php");
+      }
+
+      throw new PhpErrorException($errno, $errstr, $errfile, $errline, $krumo['enabled']);
+    }
+    catch(Exception $e) {System::handleException($e);}
   }
 
   /**
@@ -297,12 +366,7 @@ class System {
   /**
    * Exception Handler
    */
-  static function handleException($e) {
-    $code = $e->getCode();
-    $code = (is_numeric($code) && $code > 0 ? $code : 1);
-
-    System::setMessage($e->getMessage(), $code);
-  }
+  static function handleException($e) {}
 
   /**
    * Redirect to a new URL.
@@ -314,42 +378,22 @@ class System {
   }
 
   /**
-   * Register a theme.
-   *
-   * @param $loc
-   *   The location of the theme directory relative to docroot.
+   * Parse an array into an ini file string.
    */
-  private function registerThemes() {
-    $templates = array();
+  static function parseIniArray($array, $i = 0) {
+    $str = "";
 
-    // First, the default theme
-    $this->themes[] = PROOT . '/theme';
-    $templates[] = PROOT . '/theme/templates';
-
-    // Next, site overrides
-    $site_theme = $this->siteroot . '/theme';
-    if (file_exists($site_theme)) {
-      $this->themes[] = $site_theme;
-      $templates[] = "{$site_theme}/templates";
+    foreach ($array as $k => $v){
+      if (is_array($v)) {
+        $str .= str_repeat(" ", $i * 2) . "[$k]" . PHP_EOL;
+        $str .= self::parseIniArray($v, $i + 1);
+      }
+      else {
+        $str .= str_repeat(" ", $i * 2) . "$k = $v" . PHP_EOL;
+      }
     }
 
-    // Instantiate Twig
-    $settings = array(
-      'cache' => FALSE, //PROOT . '/theme/cache'
-      'autoescape' => FALSE,
-    );
-    $loader = new \Twig_Loader_Filesystem(array_reverse($templates));
-    $this->twig = new \Twig_Environment($loader, $settings);
-
-    // Add HTML Attributes function to Twig
-    $function = new \Twig_SimpleFunction('html_attributes', function(array $attributes = array()) {
-      foreach ($attributes as $attribute => &$data) {
-        $data = implode(' ', (array) $data);
-        $data = $attribute . '="' . check_plain($data) . '"';
-      }
-      return $attributes ? ' ' . implode(' ', $attributes) : '';
-    });
-    $this->twig->addFunction($function);
+    return $str;
   }
 
   /**
@@ -372,17 +416,6 @@ class System {
     catch(Exception $e){System::handleException($e);}
 
     return $out;
-  }
-
-  /**
-   * Generate safe attributes for HTML elements.
-   */
-  static function htmlAttributes(array $attributes = array()) {
-    foreach ($attributes as $attribute => &$data) {
-      $data = implode(' ', (array) $data);
-      $data = $attribute . '="' . check_plain($data) . '"';
-    }
-    return $attributes ? ' ' . implode(' ', $attributes) : '';
   }
 
   /**
