@@ -403,20 +403,16 @@ function url($path = NULL, array $options = array()) {
 /**
  * Aliases for debug var dump.
  */
-function pd($var) {
-  // Legacy function.
-  dd($var);
-}
-function dd($var, $name = NULL) {
+function pd($var, $name = NULL) {
   \Perseus\System\Debug::dump($var, $name);
 }
 function kd($var, $name = NULL) {
   \Perseus\System\Debug::kdump($var, $name);
 }
-function mdd($var, $name = NULL) {
+function pdm($var, $name = NULL) {
   \Perseus\System\Debug::mdump($var, $name);
 }
-function mkd($var, $name = NULL) {
+function kdm($var, $name = NULL) {
   \Perseus\System\Debug::mkdump($var, $name);
 }
 

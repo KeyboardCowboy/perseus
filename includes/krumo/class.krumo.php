@@ -568,13 +568,14 @@ This is a list of all the values from the <code><b><?php echo realpath($ini_file
 		krumo::_css();
 
 		// find caller
-		//
-		$_ = debug_backtrace();
+    // PERSEUS: Reversing backtract to find the correct file and line number
+		$_ = array_reverse(debug_backtrace());
 		while($d = array_pop($_)) {
-			if ((strToLower($d['function']) == 'krumo') || (strToLower(@$d['class']) == 'krumo')) {
-				break;
-				}
-			}
+      // PERSEUS: Modified if() conditions
+      if ((strpos(@$d['file'], 'util.inc') === FALSE) && (strpos(@$d['file'], 'Debug.class.php') === FALSE) && (strpos(@$d['file'], 'krumo') === FALSE) && @$d['class'] != 'krumo') {
+        break;
+      }
+		}
 
 		// the content
 		//
