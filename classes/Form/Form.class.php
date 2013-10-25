@@ -21,7 +21,7 @@ class Form extends Service {
   protected $defaults = array();
 
   // Weight incrementer for unweighted form fields.
-  private $weight = 0;
+  private $weight = 10;
 
   /**
    * Constructor
@@ -30,7 +30,7 @@ class Form extends Service {
     parent::__construct($system);
 
     $this->name    = (isset($settings['name']) ? $settings['name'] : uniqid());
-    $this->action  = (isset($settings['action']) ? filter_xss($action) : filter_xss($_SERVER['PHP_SELF']));
+    $this->action  = (isset($settings['action']) ? filter_xss($settings['action']) : filter_xss($_SERVER['PHP_SELF']));
     $this->method  = (isset($settings['method']) ? $method : 'POST');
     $this->enctype = (isset($settings['enctype']) ? $enctype : 'multipart/form-data');
   }
@@ -53,7 +53,7 @@ class Form extends Service {
 
       // Autoincrememnt a weight for the item if not provided.
       if (!$weight) {
-        $weight = $this->weight =+ 5;
+        $weight = $this->weight += 5;
       }
 
       // Default form field settings.
@@ -62,6 +62,7 @@ class Form extends Service {
         'description' => '',
         'options' => array(),
         'attributes' => array('class' => array('form-item')),
+        'required' => FALSE,
       );
 
       // Add default values
@@ -81,6 +82,49 @@ class Form extends Service {
     foreach ($vals as $field => $val) {
       $this->defaults[check_plain($field)] = check_plain($val);
     }
+  }
+
+  /**
+   * Build a submit button.
+   */
+  protected function buildHidden(array $data) {
+    $data['attributes']['type'] = 'hidden';
+    $data['attributes']['name'] = $data['name'];
+    $data['attributes']['value'] = $data['value'];
+    $text = $this->system->theme('form/hidden', $data);
+
+    // Wrap and return
+    $element['attributes']['class'][] = 'text-field';
+    $element['attributes']['class'][] = $data['name'];
+    $element['output'] = $text;
+
+    return $this->system->theme('form/form-element', $element);
+  }
+
+  /**
+   * Build a div containing HTML.
+   */
+  protected function buildHtml(array $data) {
+    $data['attributes']['class'][] = $data['name'];
+    return $this->system->theme('form/html', $data);
+  }
+
+  /**
+   * Build a text input.
+   */
+  protected function buildInput(array $data) {
+    $data['attributes']['type'] = 'input';
+    $data['attributes']['name'] = $data['name'];
+    $text = $this->system->theme('form/input', $data);
+
+    // Wrap and return
+    $element['attributes']['class'][] = 'input-field';
+    $element['attributes']['class'][] = $data['name'];
+    $element['label'] = $data['label'];
+    $element['output'] = $text;
+    $element['required'] = $data['required'];
+
+    return $this->system->theme('form/form-element', $element);
   }
 
   /**
@@ -153,6 +197,7 @@ class Form extends Service {
     $element['attributes']['class'][] = $data['name'];
     $element['label'] = $data['label'];
     $element['output'] = $select;
+    $element['required'] = $data['required'];
 
     return $this->system->theme('form/form-element', $element);
   }
@@ -176,12 +221,32 @@ class Form extends Service {
   }
 
   /**
+   * Build a text area.
+   */
+  protected function buildTextarea(array $data) {
+    $data['attributes']['name'] = $data['name'];
+    $text = $this->system->theme('form/textarea', $data);
+
+    // Wrap and return
+    $element['attributes']['class'][] = 'textarea';
+    $element['attributes']['class'][] = $data['name'];
+    $element['label'] = $data['label'];
+    $element['output'] = $text;
+    $element['required'] = $data['required'];
+
+    return $this->system->theme('form/form-element', $element);
+  }
+
+  /**
    * Render the form.
    */
   public function render() {
     $out = '';
 
     try {
+      // @todo - ksort doesn't work reliably on weight:name keys. Using default
+      // weights, the keys will start with with 5:<name>. Using ksort that field
+      // will be placed after 10:<name> through 45:<name>.
       ksort($this->fields);
 
       foreach ($this->fields as $weight => $field) {

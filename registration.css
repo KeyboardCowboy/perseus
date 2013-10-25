@@ -1,0 +1,61 @@
+/* 
+   Stylesheet for the BESC Characterization Work Shop registration pages.
+*/
+
+.workshop-registration-page .location {
+  float: left;
+  margin-top: 1em;
+}
+
+.workshop-registration-page .location.label {
+  margin-right: 10px;
+}
+
+.workshop-registration-page p {
+  clear: left;
+}
+
+#registration label {
+  display: block;
+  float: left;
+  width: 26%;
+}
+
+#registration div {
+  margin-bottom: 5px;
+}
+
+#registration div.mail,
+#registration div.provisions,
+#registration div.contact,
+#registration div.meal {
+  margin-bottom: 20px;
+}
+
+#registration .select.state select {
+  width: 282px;
+}
+
+#registration .meal label {
+  width: 32%;
+}
+
+#registration .meal div.group {
+  float: left;
+}
+
+#registration .meal .group label {
+  margin-right: 5px;
+}
+
+#registration .dietary_needs {
+  clear: left;
+  margin-bottom: 30px;
+}
+
+#registration .dietary_needs label {
+  width: 28%;
+}
+
+#registration .contact {
+}
