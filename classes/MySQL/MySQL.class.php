@@ -47,7 +47,7 @@ class MySQL extends Service {
   private function connect($creds) {
     // Attempt the connection.
     // @todo - allow configurable port.
-    $conn = mysqli_connect($creds['host'], $creds['user'], $creds['pass'], $creds['name'], 33066);
+    $conn = mysqli_connect($creds['host'], $creds['user'], $creds['pass'], $creds['name'], 3306);
     if ($err = mysqli_connect_error()) {
       throw new Exception("Error connecting to MySQL.  {$err}. " . mysqli_errno($this->conn), SYSTEM_ERROR);
     }
