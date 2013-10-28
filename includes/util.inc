@@ -413,6 +413,111 @@ function kd($var) {
   \Perseus\Debug::kdump($var);
 }
 
+/**
+ * Sets an HTTP response header for the current page.
+ *
+ * Note: When sending a Content-Type header, always include a 'charset' type,
+ * too. This is necessary to avoid security bugs (e.g. UTF-7 XSS).
+ *
+ * @param $name
+ *   The HTTP header name, or the special 'Status' header name.
+ * @param $value
+ *   The HTTP header value; if equal to FALSE, the specified header is unset.
+ *   If $name is 'Status', this is expected to be a status code followed by a
+ *   reason phrase, e.g. "404 Not Found".
+ * @param $append
+ *   Whether to append the value to an existing header or to replace it.
+ *
+ * Borrowed from Drupal:
+ *
+ * @see https://api.drupal.org/api/drupal/core%21includes%21bootstrap.inc/function/drupal_add_http_header/8
+ */
+function perseus_add_http_header($name, $value, $append = FALSE) {
+  // The headers as name/value pairs.
+  $headers = &perseus_static('perseus_http_headers', array());
+
+  $name_lower = strtolower($name);
+  _perseus_set_preferred_header_name($name);
+
+  if ($value === FALSE) {
+    $headers[$name_lower] = FALSE;
+  }
+  elseif (isset($headers[$name_lower]) && $append) {
+    // Multiple headers with identical names may be combined using comma (RFC
+    // 2616, section 4.2).
+    $headers[$name_lower] .= ',' . $value;
+  }
+  else {
+    $headers[$name_lower] = $value;
+  }
+}
+
+/**
+ * Provides central static variable storage.
+ *
+ * All functions requiring a static variable to persist or cache data within
+ * a single page request are encouraged to use this function unless it is
+ * absolutely certain that the static variable will not need to be reset during
+ * the page request. By centralizing static variable storage through this
+ * function, other functions can rely on a consistent API for resetting any
+ * other function's static variables.
+ *
+ * Borrowed from Drupal:
+ *
+ * @see https://api.drupal.org/api/drupal/core%21includes%21bootstrap.inc/8
+ */
+function &perseus_static($name, $default_value = NULL, $reset = FALSE) {
+  static $data = array(), $default = array();
+  // First check if dealing with a previously defined static variable.
+  if (isset($data[$name]) || array_key_exists($name, $data)) {
+    // Non-NULL $name and both $data[$name] and $default[$name] statics exist.
+    if ($reset) {
+      // Reset pre-existing static variable to its default value.
+      $data[$name] = $default[$name];
+    }
+    return $data[$name];
+  }
+  // Neither $data[$name] nor $default[$name] static variables exist.
+  if (isset($name)) {
+    if ($reset) {
+      // Reset was called before a default is set and yet a variable must be
+      // returned.
+      return $data;
+    }
+    // First call with new non-NULL $name. Initialize a new static variable.
+    $default[$name] = $data[$name] = $default_value;
+    return $data[$name];
+  }
+  // Reset all: ($name == NULL). This needs to be done one at a time so that
+  // references returned by earlier invocations of drupal_static() also get
+  // reset.
+  foreach ($default as $name => $value) {
+    $data[$name] = $value;
+  }
+  // As the function returns a reference, the return should always be a
+  // variable.
+  return $data;
+}
+
+/**
+ * Sets the preferred name for the HTTP header.
+ *
+ * Header names are case-insensitive, but for maximum compatibility they should
+ * follow "common form" (see RFC 2616, section 4.2).
+ *
+ * Borrowed from Drupal:
+ *
+ * @see https://api.drupal.org/api/drupal/core%21includes%21bootstrap.inc/function/_drupal_set_preferred_header_name/8
+ */
+function _perseus_set_preferred_header_name($name = NULL) {
+  static $header_names = array();
+
+  if (!isset($name)) {
+    return $header_names;
+  }
+  $header_names[strtolower($name)] = $name;
+}
+
 
 /**
  * Generate a unique, machine-safe ID.
