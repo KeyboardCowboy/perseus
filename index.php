@@ -4,7 +4,6 @@ require_once('init.inc');
 
 // Instantiate a System object.
 $system = new Perseus\RegistrationSystem(dirname(__FILE__));
-$_SESSION['system'] = $system;
 
 // Instantiate the database service.
 include($system->config_file);
@@ -80,7 +79,7 @@ if (array_key_exists('check_submit', $_POST)) {
           </p>
           <p><span class="red">*</span> <em>Required Fields</em></p>
           <?php print $form->render(); ?>
-          <?php //print $system->theme('system/messages', $system->getMessages(SYSTEM_NOTICE)); ?>
+          <?php print $system->theme('system/messages', $system->getMessages(SYSTEM_NOTICE)); ?>
 <?php
   }
   include_once('bottom.inc');

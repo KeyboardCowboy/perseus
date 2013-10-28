@@ -169,13 +169,14 @@ class System {
    * Retrieve a message.
    */
   static function getMessages($type = NULL, $purge = TRUE) {
-    if (isset($type)) {
+    $messages = NULL;
+    if (isset($type) && isset($_SESSION['messages'][$type])) {
       $messages = $_SESSION['messages'][$type];
       if ($purge) {
         unset($_SESSION['messages'][$type]);
       }
     }
-    else {
+    elseif (isset($_SESSION['messages'])) {
       $messages = $_SESSION['messages'];
       if ($purge) {
         unset($_SESSION['messages']);
@@ -230,6 +231,10 @@ class System {
     switch (strtolower($type)) {
       case 'csv':
         return new \Perseus\CSV($this, $settings);
+        break;
+
+      case 'csvexporter':
+        return new \Perseus\CSVExporter($this, $settings);
         break;
 
       case 'phpmail':
