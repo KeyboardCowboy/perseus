@@ -48,12 +48,14 @@ if (array_key_exists('check_submit', $_POST)) {
     $submission .= ucfirst($label) . ': ' . $value . '<br />';
   }
   $mailer->addRecipient('Shaun.Laws@nrel.gov', 'Shaun Laws');
+  $mailer->addRecipient('shaunlaws@gmail.com', 'Shaun Laws');
   $mailer->from($data['mail'], $data['name']);
   $mailer->replyTo($data['mail'], $data['name']);
   $mailer->subject('BESC Characterization Workshop registration: ' . $data['name']);
   $body = 'The following information has been added to the BESC Characterization Workshop registration database:<br />';
   $body .= '<br />';
   $body .= $submission;
+  pd($body);
   $mailer->body($body);
   $mailer->send();
 
