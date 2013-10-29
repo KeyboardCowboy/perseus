@@ -17,9 +17,23 @@ class CSVExporter extends Service {
   public function __construct($system, array $settings = array()) {
     $settings['delimiter'] = ',';
     parent::__construct($system, $settings);
-    //$this->setHeaders();
   }
 
+  /*
+   * Export the data.
+   *
+   * Open a file in memory, put the data into that file, output the headers to
+   * have the browser open the save as dialog and then output the file in memory
+   * to the browser.
+   *
+   * @param
+   *  $rows - an array of the data to be output
+   * @param
+   *  $filename - string -  the name of the file to be output
+   * @param
+   *  $delimter - char - the character to be used as the delimiter
+   *
+   */
   public function export($rows, $filename = "export.csv", $delimiter=",") {
     // open raw memory as file so no temp files needed, you might run out of memory though
     $f = fopen('php://memory', 'w');
