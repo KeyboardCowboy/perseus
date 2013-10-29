@@ -12,19 +12,14 @@ class RegistrationForm extends Form {
   public function __construct($system, $settings = array()) {
     parent::__construct($system, $settings);
 
-    $provisions = '<strong>Provisions:</strong>  Continental Breakfast, Lunch, and Afternoon
-                  Breaks will be provided for each day.  Please indicate if you
+    $provisions = '<strong>Provisions:</strong>Continental breakfast, lunch, and afternoon
+                  breaks will be provided for each day.  Please indicate if you
                   will require a vegetarian meal for lunch or if you have any
                   other special dietary requests.';
     $contact = '<strong>Please submit this registration form no later than
-                November 16th, 2013 to:</strong><br /><br />
-                Morgan Beck<br />
-                National Renewable Energy Laboratory, National Bioenergy
-                Center<br />
-                15013 Denver West Parkway, MS 3322, Golden, Colorado
-                80401-3393<br />
+                December 15th, 2013</strong><br /><br />
+                If you have any questions or concerns please contact <strong>Morgan Beck</strong>:<br /><br />
                 <strong>Phone:</strong>  (303) 384-6233<br />
-                <strong>Fax:</strong>  (303) 384-6363<br />
                 <strong>E-mail:</strong>  <a href="mailto:Morgan.beck@nrel.gov">Morgan.beck@nrel.gov</a>';
 
     // Build the form
@@ -124,7 +119,7 @@ class RegistrationForm extends Form {
   private function createDietaryNeedTextarea() {
     $data = array(
       'name' => 'dietary_needs',
-      'label' => 'Other Special dietary needs:',
+      'label' => 'Other special dietary needs:',
       'attributes' => array(
         'maxlength' => 255,
         'cols'      => 39,
@@ -185,7 +180,7 @@ class RegistrationForm extends Form {
   private function createMealRadios() {
     $data = array(
       'name' => 'meal',
-      'label' => 'I will require a Vegetarian meal:',
+      'label' => 'I will require a vegetarian meal:',
       'options' => array(
         0 => 'No',
         1 => 'Yes',
