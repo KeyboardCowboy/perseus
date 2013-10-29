@@ -99,7 +99,7 @@ class PhpMail extends Service {
       "X-Mailer: PHP/" . phpversion(),
     );
     if ($this->format == MAIL_FORMAT_HTML) {
-      $req_headers[] = "Content-type: text/html; charset=iso-8859-1";
+      $req_headers[] = "Content-type: text/html; charset=iso-8859-1;";
     }
     else {
       $req_headers[] = "Content-type: text/plain; charset=iso-8859-1";
@@ -121,6 +121,7 @@ class PhpMail extends Service {
     // Prepare the To value and Headers
     $to = $this->prepareAddressHeader($this->to);
     $headers = implode($this->eol, $this->headers);
+    pd($headers);
 
     // Deliver the email!
     return mail($to, $this->subject, $this->body, $headers);
