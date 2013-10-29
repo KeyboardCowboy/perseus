@@ -518,7 +518,31 @@ function _perseus_set_preferred_header_name($name = NULL) {
   $header_names[strtolower($name)] = $name;
 }
 
-
+/**
+ * Gets the HTTP response headers for the current page.
+ *
+ * @param $name
+ *   An HTTP header name. If omitted, all headers are returned as name/value
+ *   pairs. If an array value is FALSE, the header has been unset.
+ *
+ * @return
+ *   A string containing the header value, or FALSE if the header has been set,
+ *   or NULL if the header has not been set.
+ *
+ * Borrowed from Drupal:
+ *
+ * @see https://api.drupal.org/api/drupal/core!includes!bootstrap.inc/function/drupal_get_http_header/8
+ */
+function perseus_get_http_header($name = NULL) {
+  $headers = &perseus_static('perseus_http_headers', array());
+  if (isset($name)) {
+    $name = strtolower($name);
+    return isset($headers[$name]) ? $headers[$name] : NULL;
+  }
+  else {
+    return $headers;
+  }
+}
 /**
  * Generate a unique, machine-safe ID.
  *
