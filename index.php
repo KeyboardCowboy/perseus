@@ -38,35 +38,37 @@ if (array_key_exists('check_submit', $_POST)) {
 
   // Email the submitted data.
   //@todo - add the recipient to the site settings,
+  // Get the field labels/data for the email body.
+  foreach ($data as $label => $value) {
+    if ('dietary_needs' == $label) {
+      $label = 'Dietary needs';
+    } elseif ('meal' == $label) {
+      $value = (1 == $value) ? 'Yes' : 'No';
+    }
+    $submission .= ucfirst($label) . ': ' . $value . '<br />';
+  }
   $mailer->addRecipient('Shaun.Laws@nrel.gov', 'Shaun Laws');
   $mailer->from($data['mail'], $data['name']);
   $mailer->replyTo($data['mail'], $data['name']);
-  $mailer->subject('BESC Characterization Workshop registration');
-  $mailer->body($data['name'] . ' has registered for the workshop');
+  $mailer->subject('BESC Characterization Workshop registration: ' . $data['name']);
+  $body = 'The following information has been added to the BESC Characterization Workshop registration database:<br />';
+  $body .= '<br />';
+  $body .= $submission;
+  $mailer->body($body);
   $mailer->send();
 
   // Print out the values received in the browser.
   echo '<h1>Bioenergy Science Center (BESC) Characterization Workshop</h1>';
-  echo '<p>Thank you for submitting your registration. The data that we received was:</p>';
-  echo "Name: {$_POST['name']}<br />";
-  echo "Affiliation: {$_POST['affiliation']}<br /><br />";
-  echo "Address: <br />{$_POST['address']}<br />";
-  echo "{$_POST['city']}<br />";
-  echo "{$_POST['state']}<br />";
-  echo "{$_POST['zip']}<br />";
-  echo "{$_POST['country']}<br /><br />";
-  echo "Phone: {$_POST['phone']}<br />";
-  echo "Fax: {$_POST['fax']}<br />";
-  echo "Email: {$_POST['mail']}<br />";
-  echo "Meal: {$_POST['meal']}<br />";
-  echo "Dietary needs: {$_POST['dietary_needs']}<br />";
+  echo '<br /><p>Thank you for submitting your registration. The data that we received was:</p>';
+  echo $submission;
 
   print $system->theme('system/messages', $system->getMessages(SYSTEM_NOTICE));
   
 } else {
   ?>
           <h1>Bioenergy Science Center (BESC) Characterization Workshop</h1>
-          <h3>December 17th and 18th, 2012</h3>
+          <h3>January x, 2014</h3>
+          <br />
           <h3>Hosted by the National Renewable Energy Laboratory<br />
             15013 Denver West Parkway<br />
             Golden, CO 80401<br />
