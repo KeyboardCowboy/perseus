@@ -16,7 +16,7 @@ class HtmlElement implements HtmlElementInterface {
 
   // The template to use for theming.
   public $_build = array(
-    'template' => 'element',
+    'template' => array('element'),
     'children' => array(),
   );
 

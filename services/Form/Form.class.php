@@ -2,14 +2,42 @@
 /**
  * @file
  * Define common form processing and HTML elements.
+ *
+ * Composition
+ * - Form
+ *   - FormItem(s)
+ *     - FormElement(s) => HtmlElement(s)
+ *
+ * Example
+ * - Form
+ *   - Text Field
+ *     - label
+ *     - input
+ *     - div (description, etc)
  */
 namespace Perseus\Services;
 
-use Perseus\System;
+use Perseus\System as Perseus;
+use Perseus\System\System;
 use Perseus\System\HtmlElement;
 
-class Form extends System\Service {
+class Form extends Perseus\Service implements FormInterface {
+  const UNSUBMITTED = 0;
+  const UNVALIDATED = 1;
+  const INCOMPLETE  = 2;
+  const INVALID     = 3;
+  const VALID       = 4;
+
+  private $state = self::UNSUBMITTED;
+
+  // The form element to render.
   public $form;
+
+  // Submitted Data
+  protected $data = array();
+
+  // A flat list of all form items.
+  public $items = array();
 
   // A unique name of the form.
   protected $name;
@@ -19,11 +47,8 @@ class Form extends System\Service {
   private $method;
   private $enctype = '';
 
-  // Default field values
-  protected $defaults = array();
-
   // Weight incrementer for unweighted form fields.
-  private $weight = 0;
+  public $weight = 0;
 
   /**
    * Constructor
@@ -38,34 +63,122 @@ class Form extends System\Service {
     $this->action  = (isset($settings['action']) ? filter_xss($action) : filter_xss($_SERVER['PHP_SELF']));
     $this->method  = (isset($settings['method']) ? $method : 'POST');
     $this->enctype = (isset($settings['enctype']) ? $enctype : 'multipart/form-data');
+
+    $this->state = self::UNSUBMITTED;
+
+    try {
+      $this->processFormData();
+    }
+    catch(Exception $e) {System::handleException($e);}
+  }
+
+  /**
+   * Look for submitted form data and process it.
+   */
+  protected function processFormData() {
+    if ($this->method == 'POST' && !empty($_POST)) {
+      $this->data = $_POST;
+    }
+    elseif ($this->method == 'GET' && !empty($_GET)) {
+      $this->data = $_GET;
+    }
+
+    // If we found submitted data, validate the form.
+    if ($this->data) {
+      $this->state = self::INCOMPLETE;
+    }
   }
 
   /**
    * Add a form item to the form.
    */
-  public function addField($name, FormItem $field, $wrap = TRUE) {
-    $field->prepare();
+  public function addItem($name, FormItem $item, $wrap = FALSE) {
+    $item->wrap = $wrap;
 
-    if ($wrap) {
-      $wrapper = new HtmlElement('div');
-      $wrapper->addCssClass(array('form-item', $name, $field->type));
-      $wrapper->_build['template'] = 'form/form-item';
-      $wrapper->_build['children'] = $field->_build['children'];
-      $this->form->_build['children'][$name] = $wrapper;
+    // Check for submitted data to assign as the value of the field.
+    switch ($item->type) {
+      case 'radio':
+      case 'checkbox':
+      case 'submit':
+        if (isset($this->data[$item->name])) {
+          $item->posted_value = $this->data[$item->name];
+        }
+        break;
+
+      default:
+        if (isset($this->data[$item->name])) {
+          $item->posted_value = $this->data[$item->name];
+        }
+        break;
     }
-    else {
-      // Add the field to the form.
-      $this->form->_build['children'][$name] = $field->_build['children'];
-    }
+
+    // Log the fields for validation and submission.
+    $this->items[$name] = $item;
   }
 
   /**
-   * Set default values
+   * Validate the form.
    */
-  public function setDefaults($vals) {
-    // Sanitize the data.
-    foreach ($vals as $field => $val) {
-      $this->defaults[check_plain($field)] = check_plain($val);
+  public function validate() {
+    if (!$this->data) {
+      return FALSE;
+    }
+
+    $valid = TRUE;
+
+    // Cycle through field validators.
+    foreach ($this->items as $item) {
+      // Check for required fields.  We do this first so the information is
+      // available to the item's extended validation function and it can
+      // call the parent validator last.
+      if ($item->required && !$item->posted_value) {
+        System::setMessage("Field '{$item->label}' is required.", SYSTEM_ERROR);
+        $item->is_valid = FALSE;
+        $valid = FALSE;
+      }
+
+      // Call each field's own validation method.
+      $item->validate();
+      if (!$item->isValid()) {
+        $valid = FALSE;
+      }
+    }
+
+    // Set the validation state depending on the field statuses.
+    $this->state = ($valid ? self::VALID : self::INVALID);
+  }
+
+  /**
+   * Submit handler for the form.  This should be extended into your own form
+   * to process and store data.
+   */
+  public function submit() {
+    switch ($this->state) {
+      case self::UNSUBMITTED:
+        return FALSE;
+        break;
+
+      case self::UNVALIDATED:
+      case self::INCOMPLETE:
+        System::setMessage('Form has not been validated.', SYSTEM_ERROR);
+        return FALSE;
+        break;
+
+      case self::INVALID:
+        System::setMessage('There are errors in the form that need to be corrected.', SYSTEM_ERROR);
+        return FALSE;
+        break;
+    }
+
+    // Do not submit unvalidated data!
+    if ($this->state != self::VALID) {
+      System::setMessage('Form has not been validated.', SYSTEM_ERROR);
+      return FALSE;
+    }
+
+    // Cycle through field submittors.
+    foreach ($this->items as $name => $item) {
+      $item->submit();
     }
   }
 
@@ -80,6 +193,32 @@ class Form extends System\Service {
       'name'    => $this->name,
       'id'      => unique_id($this->name),
     );
+
+    foreach ($this->items as $item) {
+      $item->prepare();
+
+      // Prepare the renderable elements.
+      if ($item->wrap) {
+        $wrapper = new HtmlElement('div');
+        $wrapper->addCssClass(array('form-item', $item->name, $item->type));
+        $wrapper->_build['template'][] = 'form/form-item';
+        $wrapper->_build['template'][] = 'form/form-item-' . $item->type;
+        $wrapper->_build['children'] = $item->_build['children'];
+
+        // Add a flag to aid in rendering.
+        if ($item->required) {
+          $wrapper->required = TRUE;
+        }
+
+        $this->form->_build['children'][$item->name] = $wrapper;
+      }
+      else {
+        // Add the field to the form.
+        foreach ($item->_build['children'] as $element_name => $field) {
+          $this->form->_build['children']["{$item->name}-{$element_name}"] = $field;
+        }
+      }
+    }
   }
 
   /**
@@ -90,60 +229,33 @@ class Form extends System\Service {
     $this->prepare();
     return $this->system->render($this->form);
   }
+}
+
+/**
+ * Interface for Form objects.
+ */
+interface FormInterface {
+  /**
+   * Constructor
+   *
+   * @param $system
+   *   A system object to handle the rendering and processing.
+   * @param $settings
+   *   An array of form settings for the action, method, name etc.
+   */
+  public function __construct($system, array $settings = array());
 
   /**
-   * Helper to recursively render fields.
+   * Add generic form validation functionality.  Each form item may also
+   * implement specific validators.  The parent validator should be called first.
    */
-  private function _prepareRender($fields) {
-    $markup = '';
-    $_fields = array();
+  public function validate();
 
-    // Sort the fields
-    foreach ($fields as $field) {
-      $field_array = (array) $field;
-      $weight = (isset($field_array['weight']) ? $field_array['weight'] : 0);
-      $_fields[$weight + 10000000] = $field;
-    }
-
-    ksort($_fields);
-
-    // Recurse through the items and theme each element.
-    foreach ($_fields as $key => $field) {
-      //list($weight,$name) = explode(':', $key);
-
-      // The field may be an HtmlElement Object, an array of fields or a
-      // rendered field.
-      if (is_object($field)) {
-        $markup .= $this->system->render($field);
-      }
-      elseif (is_string($field)) {
-        $markup .= $field;
-      }
-      elseif (is_array($field)) {
-        if (!empty($field['elements']) && isset($field['wrapper'])) {
-          $wrapper = new HtmlElement($field['wrapper']);
-          $wrapper->value = $this->_prepareRender($field['elements']);
-
-          if (isset($field['attributes']) && is_array($field['attributes'])) {
-            $wrapper->attributes = $field['attributes'] + array(
-              'id' => unique_id("form-item-{$field['name']}"),
-              'class' => array('form-item'),
-            );
-          }
-
-          $markup .= $this->system->render($wrapper);
-        }
-        elseif (!empty($field['elements'])) {
-          $markup .= $this->_prepareRender($field['elements']);
-        }
-        else {
-          $markup .= $this->_prepareRender($field);
-        }
-      }
-    }
-
-    return $markup;
-  }
+  /**
+   * Add generic submission functionality.  Each form item may also implement
+   * specific submittors.  The parent submittor should be called first.
+   */
+  public function submit();
 }
 
 /**
@@ -154,18 +266,25 @@ class FormItem {
   public $type;
   public $name;
   public $value;
+  public $default_value;
   public $label;
   public $description;
   public $placeholder;
+  public $required;
   public $options;
   public $weight = 0;
-  public $validators = array();
 
   // Attributes
   public $attributes = array();
   public $label_attributes = array();
   public $description_attributes = array();
   public $wrapper_attributes = array();
+
+  // Whether or not the form item has been checked for validity.
+  protected $validated = FALSE;
+
+  // Whether the field passed validation.
+  private $is_valid;
 
   // Constructor
   public function __construct($type, $name) {
@@ -174,20 +293,15 @@ class FormItem {
   }
 
   /**
-   * Add a validation callback.
-   */
-  public function addValidator($callback) {
-    $this->validators[] = $callback;
-  }
-
-  /**
    * Add an element to the FormItem
    */
-  public function addItem($name, $item) {
+  protected function addItem($name, $item) {
     $this->_build['children'][$name] = $item;
   }
 
-  // Prepare the data to be rendered.
+  /**
+   * Prepare the data to be rendered.
+   */
   public function prepare() {
     // Check the placeholder and other attributes.
     if ($this->placeholder) {
@@ -199,8 +313,17 @@ class FormItem {
       $label = new HtmlElement('label', $this->label_attributes);
       $label->content = $this->label;
       $label->attributes['for'] = $this->name;
-      $label->weight = 0;
+      $label->weight = ($this->type == 'radio' || $this->type == 'checkbox' ? 3 : 0);
       $this->addItem('label', $label);
+    }
+
+    // Add the required indicator
+    if ($this->required) {
+      $req = new HtmlElement('');
+      $req->_build['template'] = 'form/required';
+      $req->content = '*';
+      $req->addCssClass('required');
+      $this->addItem('req', $req);
     }
 
     // Build the description
@@ -208,22 +331,77 @@ class FormItem {
       $desc = new HtmlElement('div', $this->description_attributes);
       $desc->attributes['class'][] = 'desc';
       $desc->content = $this->description;
-      $desc->weight = 2;
+      $desc->weight = 5;
       $this->addItem('desc', $desc);
     }
 
     // Build the form element
-    $class = "FormElement" . ucwords($this->type);
-    $field = (class_exists($class) ? new $class($this->name, $this->attributes) : new FormElement('input', $this->type, $this->name, $this->attributes));
+    switch ($this->type) {
+      case 'radio':
+      case 'checkbox':
+        break;
+
+      case 'radios':
+      case 'checkboxes':
+        $class = "Perseus\Services\FormElement" . ucwords($this->type);
+        $field = (class_exists($class) ? new $class($this->name, $this->attributes, $this->options) : new FormElement('input', $this->type, $this->name, $this->attributes));
+        //-----
+        break;
+
+      case 'select':
+        break;
+
+      default:
+        $class = "Perseus\Services\FormElement" . ucwords($this->type);
+        $field = (class_exists($class) ? new $class($this->name, $this->attributes) : new FormElement('input', $this->type, $this->name, $this->attributes));
+        $field->value = (is_null($this->value) ? $this->default_value : $this->value);
+        break;
+    }
     $field->weight = 1;
+
+    // Add an error class if we did not validate.
+    if (!$this->isValid()) {
+      $field->addCssClass('error');
+    }
+
     $this->addItem('field', $field);
+  }
+
+  /**
+   * Checks to see if the item is valid.
+   */
+  public function isValid() {
+    return ($this->validated && $this->is_valid !== FALSE);
+  }
+
+  /**
+   * Generic validator for the form item.  May be extended into your own form.
+   */
+  public function validate() {
+    $this->validated = TRUE;
+  }
+
+  /**
+   * Generic submittor.  May be extended into your own form.
+   */
+  public function submit() {
+    // Let the form handle the submitting.  Extend this method into your own
+    // form items for item specific submit handling.
+  }
+
+  /**
+   * Report a validation error on the form item.
+   */
+  public function setError($msg) {
+    System::setMessage($msg, SYSTEM_ERROR);
+    $this->is_valid = FALSE;
   }
 }
 
 /**
  * Extend HTML Element to manage form elements.
  */
-class FormElement extends System\HtmlElement {
+class FormElement extends Perseus\HtmlElement {
   public $weight = NULL;
   public $name;
   public $type;
@@ -419,6 +597,8 @@ class FormElementText extends FormElement {
     if ($this->maxlength) {
       $this->attributes['maxlength'] = $this->maxlength;
     }
+
+    $this->attributes['value'] = $this->value;
 
     // Pass it on to the parent classes.
     parent::prepare();

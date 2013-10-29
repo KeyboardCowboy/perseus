@@ -1,0 +1,6 @@
+<div {{ html_attributes(attributes) }}>
+  {{ field.content }}
+  {% if label._content %}
+  <label {{ html_attributes(label.attributes) }}>{{ label._content }}</label>
+  {% endif %}
+</div>

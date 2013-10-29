@@ -1,8 +1,13 @@
 <div {{ html_attributes(attributes) }}>
   {% if label._content %}
   <label {{ html_attributes(label.attributes) }}>{{ label._content }}</label>
+    {% if required %}
+    <span class="required">*</span>
+    {% endif %}
   {% endif %}
+
   {{ field.content }}
+
   {% if desc._content %}
   <div {{ html_attributes(desc.attributes) }}>{{ desc._content }}</div>
   {% endif %}

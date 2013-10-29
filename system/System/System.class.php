@@ -404,19 +404,32 @@ class System {
   /**
    * Theme an item.
    */
-  public function theme($template, $vars = array()) {
+  public function theme($templates, $vars = array()) {
     $out = '';
+
+    $templates = array_reverse((array) $templates);
 
     try {
       // Call processors for each implementation.
       foreach ($this->themes as $theme) {
-        $processor_file = "$theme/processors/{$template}.inc";
-        if (file_exists($processor_file)) {
-          System::themeProcessVars($processor_file, $vars);
+        foreach ($templates as $template) {
+          $processor_file = "$theme/processors/{$template}.inc";
+          if (file_exists($processor_file)) {
+            System::themeProcessVars($processor_file, $vars);
+          }
         }
       }
 
-      $out = $this->twig->render("{$template}.html", $vars);
+      // Find the first available template file from the array.
+      foreach ($this->themes as $theme) {
+        foreach ($templates as $template) {
+          $file = "$theme/templates/{$template}.html";
+          if (file_exists($file)) {
+            $out = $this->twig->render("{$template}.html", $vars);
+            break;
+          }
+        }
+      }
     }
     catch(Exception $e){System::handleException($e);}
 
@@ -442,6 +455,9 @@ class System {
     try {
       // Prepare the object for rendering.
       $object->prepare();
+
+      kd($object);
+
       $this->_render($object);
       return $object->content;
     }
