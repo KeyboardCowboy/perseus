@@ -12,7 +12,7 @@ class RegistrationForm extends Form {
   public function __construct($system, $settings = array()) {
     parent::__construct($system, $settings);
 
-    $provisions = '<strong>Provisions:</strong>Continental breakfast, lunch, and afternoon
+    $provisions = '<strong>Provisions:</strong> Continental breakfast, lunch, and afternoon
                   breaks will be provided for each day.  Please indicate if you
                   will require a vegetarian meal for lunch or if you have any
                   other special dietary requests.';
