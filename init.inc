@@ -23,6 +23,7 @@ require_once(PROOT . '/includes/util.inc');
 function perseus_autoload($class) {
   // Perseus classes
   if (strpos($class, 'Perseus') === 0) {
+    print "{$class}";
     $parts = explode('\\', $class);
 
     // Take into account class families in the format Type_SubClass.
@@ -41,6 +42,7 @@ function perseus_autoload($class) {
 
     // Create the path from the namespace.
     $file = PROOT . '/' . strtolower(implode('/', $parts)) . "/{$parent}/{$child}.class.php";
+    print " => $file<br />";
     if (is_file($file)) {
       require $file;
     }
