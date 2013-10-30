@@ -5,10 +5,13 @@
 .workshop-registration-page .location {
   float: left;
   margin-top: 1em;
+  margin-bottom: 1em;
+  font-weight: bold;
 }
 
 .workshop-registration-page .location.label {
   margin-right: 10px;
+  font-weight: bold;
 }
 
 .workshop-registration-page p {
@@ -32,8 +35,16 @@
   margin-bottom: 20px;
 }
 
-#registration .select.state select {
-  width: 282px;
+#registration select {
+  width: 284px;
+}
+
+#registration input {
+  width: 278px;
+}
+
+#registration input[name=submit] {
+  width: auto;
 }
 
 #registration .meal label {
