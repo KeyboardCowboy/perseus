@@ -1,4 +1,5 @@
 <?php
+
 // Load Perseus.
 require_once('init.inc');
 
@@ -62,7 +63,7 @@ if (array_key_exists('check_submit', $_POST)) {
       throw new Exception('Unable to email submission - site email not specified in settings/settings.php' . '.', SYSTEM_ERROR);
     }
   }
-  catch(Exception $e) {System::handleException($e);}
+  catch(Exception $e) {$system->handleException($e);}
 
   // Print out the values received in the browser.
   echo '<h1>Bioenergy Science Center (BESC) Characterization Workshop</h1>';
