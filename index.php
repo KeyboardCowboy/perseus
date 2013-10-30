@@ -36,8 +36,6 @@ if (array_key_exists('check_submit', $_POST)) {
   unset($data['submit']);
   $system->db()->insert('registration', $data);
 
-  // Email the submitted data.
-  //@todo - add the recipient to the site settings,
   // Get the field labels/data for the email body.
   foreach ($data as $label => $value) {
     if ('dietary_needs' == $label) {
@@ -47,17 +45,24 @@ if (array_key_exists('check_submit', $_POST)) {
     }
     $submission .= ucfirst($label) . ': ' . $value . '<br />';
   }
-  $mailer->addRecipient('Shaun.Laws@nrel.gov', 'Shaun Laws');
-  $mailer->addRecipient('shaunlaws@gmail.com', 'Shaun Laws');
-  $mailer->from($data['mail'], $data['name']);
-  $mailer->replyTo($data['mail'], $data['name']);
-  $mailer->subject('BESC Characterization Workshop registration: ' . $data['name']);
-  $body = 'The following information has been added to the BESC Characterization Workshop registration database:<br />';
-  $body .= '<br />';
-  $body .= $submission;
-  pd($body);
-  $mailer->body($body);
-  $mailer->send();
+  // Email the submitted data, if the site .
+  try {
+    if (!empty($system->settings['site_email']['mail'])) {
+      $mailer->addRecipient($system->settings['site_email']['mail'], $system->settings['site_email']['name']);
+      $mailer->from($data['mail'], $data['name']);
+      $mailer->replyTo($data['mail'], $data['name']);
+      $mailer->subject('BESC Characterization Workshop registration: ' . $data['name']);
+      $body = 'The following information has been added to the BESC Characterization Workshop registration database:<br />';
+      $body .= '<br />';
+      $body .= $submission;
+      pd($body);
+      $mailer->body($body);
+      $mailer->send();
+    } else {
+      throw new Exception('Unable to email submission - site email not specified in settings/settings.php' . '.', SYSTEM_ERROR);
+    }
+  }
+  catch(Exception $e) {System::handleException($e);}
 
   // Print out the values received in the browser.
   echo '<h1>Bioenergy Science Center (BESC) Characterization Workshop</h1>';

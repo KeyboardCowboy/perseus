@@ -30,4 +30,5 @@ $db['default'] = array(
   'host' => 'localhost',
   'user' => '',
   'pass' => '',
+  'port' => 3306,
 );

@@ -30,7 +30,7 @@ class MySQL extends Service {
 
     try {
       // Make sure our creds are set.
-      foreach (array('host', 'user', 'pass', 'name') as $field) {
+      foreach (array('host', 'user', 'pass', 'name', 'port') as $field) {
         if (empty($creds[$field])) {
           throw new Exception('Invalid database credentials.  Unable to connect.', SYSTEM_ERROR);
         }
@@ -47,7 +47,7 @@ class MySQL extends Service {
   private function connect($creds) {
     // Attempt the connection.
     // @todo - allow configurable port.
-    $conn = mysqli_connect($creds['host'], $creds['user'], $creds['pass'], $creds['name'], 3306);
+    $conn = mysqli_connect($creds['host'], $creds['user'], $creds['pass'], $creds['name'], $creds['port']);
     if ($err = mysqli_connect_error()) {
       throw new Exception("Error connecting to MySQL.  {$err}. " . mysqli_errno($this->conn), SYSTEM_ERROR);
     }
