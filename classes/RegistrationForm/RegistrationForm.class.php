@@ -68,7 +68,6 @@ class RegistrationForm extends Form {
         'maxlength' => 128,
         'size'      => 39,
       ),
-      'required' => TRUE,
       'validators' => array('plain_text'),
     );
     $this->addItem('input', $data);
@@ -125,7 +124,6 @@ class RegistrationForm extends Form {
         'cols'      => 39,
         'rows'      => 5,
       ),
-      'required' => TRUE,
     );
     $this->addItem('textarea', $data);
   }
@@ -141,7 +139,6 @@ class RegistrationForm extends Form {
         'maxlength' => 255,
         'size'      => 39,
       ),
-      'required' => TRUE,
       'validators' => array('email'),
     );
     $this->addItem('input', $data);
@@ -186,7 +183,6 @@ class RegistrationForm extends Form {
         1 => 'Yes',
       ),
       'default' => 0,
-      'required' => TRUE,
     );
     $this->addItem('radios', $data);
   }
@@ -202,7 +198,6 @@ class RegistrationForm extends Form {
         'maxlength' => 128,
         'size'      => 39,
       ),
-      'required' => TRUE,
       'validators' => array('plain_text'),
     );
     // Start at weight 10 to avoid the key sorting issue
@@ -221,7 +216,6 @@ class RegistrationForm extends Form {
         'maxlength' => 20,
         'size'      => 39,
       ),
-      'required' => TRUE,
       'validators' => array('phone'),
     );
     $this->addItem('input', $data);
@@ -235,7 +229,6 @@ class RegistrationForm extends Form {
       'name' => 'state',
       'label' => 'State/Province:',
       'options' => array_merge(get_us_states(), get_canadian_provinces()),
-      'required' => TRUE,
     );
     $this->addItem('select', $data);
   }
