@@ -1,12 +1,17 @@
+{{ krumo_vars() }}
+
+
+
+
 <div {{ html_attributes(attributes) }}>
-  {% if label._content %}
-  <label {{ html_attributes(label.attributes) }}>{{ label._content }}</label>
+  {% if label %}
+  <label for="{{ attributes.name }}">{{ label }}</label>
     {% if required %}
     <span class="required">*</span>
     {% endif %}
   {% endif %}
 
-  {{ field.content }}
+  {{ inner }}
 
   {% if desc._content %}
   <div {{ html_attributes(desc.attributes) }}>{{ desc._content }}</div>

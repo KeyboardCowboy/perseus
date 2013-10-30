@@ -25,19 +25,28 @@ function perseus_autoload($class) {
   if (strpos($class, 'Perseus') === 0) {
     $parts = explode('\\', $class);
 
+    // Take into account class families in the format Type_SubClass.
+    $family = array_pop($parts);
+    $family = explode('_', $family);
+    if (count($family) == 1) {
+      $parent = $child = $family[0];
+    }
+    else {
+      $parent = array_shift($family);
+      $child  = implode('/', $family);
+    }
+
     // Remove the 'Perseus' namespace
     array_shift($parts);
 
-    // Grab the classname
-    $class = array_pop($parts);
-
     // Create the path from the namespace.
-    if (is_file($file = PROOT . '/' . strtolower(implode('/', $parts)) . "/$class/$class.class.php")) {
+    $file = PROOT . '/' . strtolower(implode('/', $parts)) . "/{$parent}/{$child}.class.php";
+    if (is_file($file)) {
       require $file;
     }
   }
 
-  // Twig classes (@see Autoloader.php)
+  // Twig classes (@see Twig's Autoloader.php)
   elseif (strpos($class, 'Twig') === 0) {
     if (is_file($file = PROOT . '/theme/twig/lib/' . str_replace(array('_', "\0"), array('/', ''), $class).'.php')) {
       require $file;

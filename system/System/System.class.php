@@ -151,6 +151,13 @@ class System {
       return $attributes ? ' ' . implode(' ', $attributes) : '';
     });
     $this->twig->addFunction($function);
+
+    // Add debugging if on.
+    if ($settings['debug']) {
+      //include_once(PROOT . '/system/Debug/TwigKrumo');
+      $this->twig->addExtension(new \Twig_Extension_Debug());
+      $this->twig->addExtension(new Debug_TwigKrumoExtension());
+    }
   }
 
   /**
@@ -158,7 +165,7 @@ class System {
    */
   public function handleErrors($errno, $errstr, $errfile, $errline) {
     try {
-      throw new PhpErrorException($errno, $errstr, $errfile, $errline, $this, $krumo['enabled']);
+      throw new PhpErrorException($errno, $errstr, $errfile, $errline, $this, TRUE);
     }
     catch(Exception $e) {System::handleException($e);}
   }
@@ -423,9 +430,9 @@ class System {
       // Find the first available template file from the array.
       foreach ($this->themes as $theme) {
         foreach ($templates as $template) {
-          $file = "$theme/templates/{$template}.html";
+          $file = "$theme/templates/{$template}.html.twig";
           if (file_exists($file)) {
-            $out = $this->twig->render("{$template}.html", $vars);
+            $out = $this->twig->render("{$template}.html.twig", $vars);
             break;
           }
         }
@@ -456,10 +463,10 @@ class System {
       // Prepare the object for rendering.
       $object->prepare();
 
-      kd($object);
+      //pd($object);
 
       $this->_render($object);
-      return $object->content;
+      return $this->theme($object->getTemplates(), $object->getBuildData());
     }
     catch(Exception $e) {System::handleException($e);}
   }
@@ -468,14 +475,14 @@ class System {
    * Helper to recursively theme elements.
    */
   private function _render($parent) {
-    // Store the original content in a separate property for reference.
-    $parent->_content = $parent->content;
+    $children = $parent->getChildren();
 
     // Recurse through the youngest children first
-    if (!empty($parent->_build['children'])) {
+    if (!empty($children)) {
       // Sort the children
       $sorted = array();
-      foreach ($parent->_build['children'] as $child_name => $child) {
+      foreach ($children as $child_key => $child) {
+        $child->_key = $child_key;
         while (isset($sorted[$child->weight])) {
           $child->weight += 0.01;
         }
@@ -489,12 +496,13 @@ class System {
         $this->_render($child);
 
         // Append each child's content to the parent for inheritence.
-        $parent->content .= $child->content;
+        $parent->appendChildContent($child->rendered);
+        $parent->addBuildData('_content', array($child->child_key, $child->rendered), TRUE);
       }
     }
 
     // Theme the item.
-    $parent->content = $this->theme($parent->_build['template'], (array) $parent);
+    $parent->rendered = $this->theme($parent->getTemplates(), $parent->getBuildData());
   }
 }
 

@@ -79,7 +79,7 @@ class Debug {
   /**
    * Capture the value from a krumo.
    */
-  private static function captureKrumo($var) {
+  public static function captureKrumo($var) {
     ob_start();
     \krumo($var);
     return ob_get_clean();

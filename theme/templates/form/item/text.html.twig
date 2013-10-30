@@ -1,0 +1,17 @@
+{% if wrap %}
+<div class="form-item item-name-{{ attributes.name }} text">
+{% endif %}
+
+  {% if _content.label %}
+  {{  _content.label }}
+  {% endif %}
+
+  <input type="text" {{ html_attributes(attributes) }} />
+
+  {% if _content.description %}
+  {{ _content.description }}
+  {% endif %}
+
+{% if wrap %}
+</div>
+{% endif %}
