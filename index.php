@@ -75,19 +75,14 @@ if (array_key_exists('check_submit', $_POST)) {
 } else {
   ?>
           <h1>Bioenergy Science Center (BESC) Characterization Workshop</h1>
-          <h3>January x, 2014</h3>
-          <br />
-          <h3>Hosted by the National Renewable Energy Laboratory<br />
-            15013 Denver West Parkway<br />
-            Golden, CO 80401<br />
-          </h3>
+          <h3>January 5th and 6th, 2014</h3>
           <div class="location label">Meeting Location:</div>
-          <div class="location">National Renewable Energy Laboratory<br />
-            15013 Denver West Parkway<br />
-            Golden, CO 80401<br />
+          <div class="location">The Mission Inn Hotel & Spa<br />
+            3649 Mission Inn Ave.<br />
+            Riverside, CA 92501<br />
           </div>
-          </p>
-          <p><span class="red">*</span> <em>Required Fields</em></p>
+          <p>Hosted by the National Renewable Energy Laboratory</p>
+          <br />
           <?php print $form->render(); ?>
           <?php print $system->theme('system/messages', $system->getMessages(SYSTEM_NOTICE)); ?>
 <?php
