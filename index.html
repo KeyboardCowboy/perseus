@@ -1,0 +1,159 @@
+<?php
+
+// Load Perseus.
+require_once('init.inc');
+?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--#set var="VAR_topnav" value="extranet" -->
+<!--#set var="VAR_site"   value="besc_characterization" -->
+<!--#set var="VAR_page"   value="besc_characterization_home" -->
+
+
+<!--PRINTABLE VERSION SET UP START -->
+<!--#include virtual="/includes/print.html" -->
+<!--PRINTABLE VERSION SET UP END -->
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"> 
+<head>
+<title>NREL: Bioenergy Science Center (BESC) Characterization Workshop - Registration</title>
+<!--#include virtual="/includes/javascript.html" -->
+</head>
+
+<body>
+<div id="wrapper">
+<!--EXCLUDE FOR PRINTABLE VERSION TOP START -->
+<!--#if expr="($VAR_printable=/no/)" -->
+    <!--#include virtual="/includes/topnav.html" -->
+    <?php include('/includes/topnav.html'); ?>
+        <!--CONTENT START -->
+        <div id="content-menu">
+            <!--CENTER COLUMN START -->
+            <div id="column-center-noright">
+<!--EXCLUDE FOR PRINTABLE VERSION TOP END -->
+<!--#else -->
+<!--#include virtual="/includes/print_page.html" -->
+<!--#endif -->
+
+
+<!--BEGIN EDIT (do not change anything above this line) -->
+
+<?php
+
+// Load Perseus.
+require_once('init.inc');
+
+// Instantiate a System object.
+$system = new Perseus\RegistrationSystem(dirname(__FILE__));
+
+// Instantiate the database service.
+include($system->config_file);
+$system->newService('db', $db);
+
+// Instantiate the Installer and install.
+$installer = new Perseus\RegistrationSystemInstaller($system);
+$installer->install();
+
+// Instantiate the form.
+$form_settings = array('action' => 'index.php', 'name' => 'registration');
+$form = new Perseus\Tools\RegistrationForm($system, $form_settings);
+
+// Instantiate the mailer.
+$mailer = new Perseus\PhpMail($system);
+
+//Check whether the form has been submitted
+
+if (array_key_exists('check_submit', $_POST)) {
+
+  //Converts the new line characters (\n) in the text area into HTML line breaks
+  // (the <br /> tag).
+  $_POST['dietary_needs'] = nl2br($_POST['dietary_needs']);
+
+  // Store the submitted data.
+  $data = $_POST;
+  unset($data['check_submit']);
+  unset($data['submit']);
+  $system->db()->insert('registration', $data);
+
+  // Get the field labels/data for the email body.
+  foreach ($data as $label => $value) {
+    if ('dietary_needs' == $label) {
+      $label = 'Dietary needs';
+    } elseif ('meal' == $label) {
+      $value = (1 == $value) ? 'Yes' : 'No';
+    }
+    $submission .= ucfirst($label) . ': ' . $value . '<br />';
+  }
+  // Email the submitted data, if the site .
+  try {
+    if (!empty($system->settings['site_email']['mail'])) {
+      $mailer->addRecipient($system->settings['site_email']['mail'], $system->settings['site_email']['name']);
+      $mailer->from($data['mail'], $data['name']);
+      $mailer->replyTo($data['mail'], $data['name']);
+      $mailer->subject('BESC Characterization Workshop registration: ' . $data['name']);
+      $body = 'The following information has been added to the BESC Characterization Workshop registration database:<br />';
+      $body .= '<br />';
+      $body .= $submission;
+      pd($body);
+      $mailer->body($body);
+      $mailer->send();
+    } else {
+      throw new Exception('Unable to email submission - site email not specified in settings/settings.php' . '.', SYSTEM_ERROR);
+    }
+  }
+  catch(Exception $e) {$system->handleException($e);}
+
+  // Print out the values received in the browser.
+  echo '<h1>Bioenergy Science Center (BESC) Characterization Workshop</h1>';
+  echo '<br /><p>Thank you for submitting your registration. The data that we received was:</p>';
+  echo $submission;
+
+  print $system->theme('system/messages', $system->getMessages(SYSTEM_NOTICE));
+
+} else {
+  ?>
+          <h1>Bioenergy Science Center (BESC) Characterization Workshop</h1>
+          <h3>January 5th and 6th, 2014</h3>
+          <div class="location label">Meeting Location:</div>
+          <div class="location">The Mission Inn Hotel & Spa<br />
+            3649 Mission Inn Ave.<br />
+            Riverside, CA 92501<br />
+          </div>
+          <p>Hosted by the National Renewable Energy Laboratory</p>
+          <br />
+          <?php print $form->render(); ?>
+          <?php print $system->theme('system/messages', $system->getMessages(SYSTEM_NOTICE)); ?>
+<?php
+  }
+?>
+
+<!--FINISH EDIT (do not change anything below this line) -->
+
+<!-- EXCLUDE FOR PRINTABLE VERSION BOTTOM START -->
+<!--#if expr="($VAR_printable=/no/)" -->
+                <div id="printable-bottom"><!--#include virtual="/includes/printable_version.html" --></div>
+            </div>
+            <!--CENTER COLUMN END -->
+
+            <!--LEFT COLUMN START -->
+            <div id="column-left">
+              <!--
+              <div id="leftnav_box">
+                  <b class="boxtop"><b class="boxb1"></b><b class="boxb2"></b><b class="boxb3"></b><b class="boxb4"></b></b>
+                <div class="boxmiddle">
+              <ul>
+              <li><a href="">___</a>&nbsp;<img src="/images/arrow_gray_r4x7.gif" alt="" /></li>
+              </ul>
+                </div>
+                  <b class="boxbottom"><b class="boxb4"></b><b class="boxb3"></b><b class="boxb2"></b><b class="boxb1"></b></b>
+              </div> 
+              -->
+            </div> 
+            <!--LEFT COLUMN END -->       
+        </div>
+        <!--C0NTENT END -->             
+<!--#endif -->	
+<!-- EXCLUDE FOR PRINTABLE VERSION BOTTOM END -->  
+<br clear="all" />
+<!--#include virtual="/includes/footer.html" -->
+</div>
+</body>
+</html>
