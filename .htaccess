@@ -8,3 +8,17 @@ Options -Indexes
 
 # Follow symbolic links in this directory.
 Options +FollowSymLinks
+
+AuthUserFile /var/www/.htpasswd
+AuthType Basic
+AuthName "Registrants Page"
+
+<Files "registrants.php">
+  Require valid-user
+</Files>
+
+<Files "registrants_csv.php">
+  Require valid-user
+</Files>
+
+AddType application/x-httpd-php .html

@@ -150,7 +150,7 @@ class System {
         file_put_contents("$path/krumo.ini", $content);
 
         // Include the Krumo class
-        include("{$path}/class.krumo.php");
+        include_once("{$path}/class.krumo.php");
       }
 
       throw new PhpErrorException($errno, $errstr, $errfile, $errline, $krumo['enabled']);
@@ -169,13 +169,14 @@ class System {
    * Retrieve a message.
    */
   static function getMessages($type = NULL, $purge = TRUE) {
-    if (isset($type)) {
+    $messages = NULL;
+    if (isset($type) && isset($_SESSION['messages'][$type])) {
       $messages = $_SESSION['messages'][$type];
       if ($purge) {
         unset($_SESSION['messages'][$type]);
       }
     }
-    else {
+    elseif (isset($_SESSION['messages'])) {
       $messages = $_SESSION['messages'];
       if ($purge) {
         unset($_SESSION['messages']);
@@ -232,6 +233,10 @@ class System {
         return new \Perseus\CSV($this, $settings);
         break;
 
+      case 'csvexporter':
+        return new \Perseus\CSVExporter($this, $settings);
+        break;
+
       case 'phpmail':
       case 'mail':
         return new \Perseus\PhpMail($this, $settings);
@@ -243,7 +248,12 @@ class System {
 
       case 'mysql':
       case 'db':
-        return new \Perseus\MySQL($this, $settings);
+        // Save the db connection.
+        list($key, $value) = each($settings);
+        $new_db = new \Perseus\MySQL($this, $settings);
+        $this->db[$key] = $new_db;
+        return $new_db;
+        
         break;
 
       case 'test':

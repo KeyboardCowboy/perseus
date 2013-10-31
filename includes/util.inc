@@ -413,7 +413,136 @@ function kd($var) {
   \Perseus\Debug::kdump($var);
 }
 
+/**
+ * Sets an HTTP response header for the current page.
+ *
+ * Note: When sending a Content-Type header, always include a 'charset' type,
+ * too. This is necessary to avoid security bugs (e.g. UTF-7 XSS).
+ *
+ * @param $name
+ *   The HTTP header name, or the special 'Status' header name.
+ * @param $value
+ *   The HTTP header value; if equal to FALSE, the specified header is unset.
+ *   If $name is 'Status', this is expected to be a status code followed by a
+ *   reason phrase, e.g. "404 Not Found".
+ * @param $append
+ *   Whether to append the value to an existing header or to replace it.
+ *
+ * Borrowed from Drupal:
+ *
+ * @see https://api.drupal.org/api/drupal/core%21includes%21bootstrap.inc/function/drupal_add_http_header/8
+ */
+function perseus_add_http_header($name, $value, $append = FALSE) {
+  // The headers as name/value pairs.
+  $headers = &perseus_static('perseus_http_headers', array());
 
+  $name_lower = strtolower($name);
+  _perseus_set_preferred_header_name($name);
+
+  if ($value === FALSE) {
+    $headers[$name_lower] = FALSE;
+  }
+  elseif (isset($headers[$name_lower]) && $append) {
+    // Multiple headers with identical names may be combined using comma (RFC
+    // 2616, section 4.2).
+    $headers[$name_lower] .= ',' . $value;
+  }
+  else {
+    $headers[$name_lower] = $value;
+  }
+}
+
+/**
+ * Provides central static variable storage.
+ *
+ * All functions requiring a static variable to persist or cache data within
+ * a single page request are encouraged to use this function unless it is
+ * absolutely certain that the static variable will not need to be reset during
+ * the page request. By centralizing static variable storage through this
+ * function, other functions can rely on a consistent API for resetting any
+ * other function's static variables.
+ *
+ * Borrowed from Drupal:
+ *
+ * @see https://api.drupal.org/api/drupal/core%21includes%21bootstrap.inc/8
+ */
+function &perseus_static($name, $default_value = NULL, $reset = FALSE) {
+  static $data = array(), $default = array();
+  // First check if dealing with a previously defined static variable.
+  if (isset($data[$name]) || array_key_exists($name, $data)) {
+    // Non-NULL $name and both $data[$name] and $default[$name] statics exist.
+    if ($reset) {
+      // Reset pre-existing static variable to its default value.
+      $data[$name] = $default[$name];
+    }
+    return $data[$name];
+  }
+  // Neither $data[$name] nor $default[$name] static variables exist.
+  if (isset($name)) {
+    if ($reset) {
+      // Reset was called before a default is set and yet a variable must be
+      // returned.
+      return $data;
+    }
+    // First call with new non-NULL $name. Initialize a new static variable.
+    $default[$name] = $data[$name] = $default_value;
+    return $data[$name];
+  }
+  // Reset all: ($name == NULL). This needs to be done one at a time so that
+  // references returned by earlier invocations of drupal_static() also get
+  // reset.
+  foreach ($default as $name => $value) {
+    $data[$name] = $value;
+  }
+  // As the function returns a reference, the return should always be a
+  // variable.
+  return $data;
+}
+
+/**
+ * Sets the preferred name for the HTTP header.
+ *
+ * Header names are case-insensitive, but for maximum compatibility they should
+ * follow "common form" (see RFC 2616, section 4.2).
+ *
+ * Borrowed from Drupal:
+ *
+ * @see https://api.drupal.org/api/drupal/core%21includes%21bootstrap.inc/function/_drupal_set_preferred_header_name/8
+ */
+function _perseus_set_preferred_header_name($name = NULL) {
+  static $header_names = array();
+
+  if (!isset($name)) {
+    return $header_names;
+  }
+  $header_names[strtolower($name)] = $name;
+}
+
+/**
+ * Gets the HTTP response headers for the current page.
+ *
+ * @param $name
+ *   An HTTP header name. If omitted, all headers are returned as name/value
+ *   pairs. If an array value is FALSE, the header has been unset.
+ *
+ * @return
+ *   A string containing the header value, or FALSE if the header has been set,
+ *   or NULL if the header has not been set.
+ *
+ * Borrowed from Drupal:
+ *
+ * @see https://api.drupal.org/api/drupal/core!includes!bootstrap.inc/function/drupal_get_http_header/8
+ */
+function perseus_get_http_header($name = NULL) {
+  $headers = &perseus_static('perseus_http_headers', array());
+  if (isset($name)) {
+    $name = strtolower($name);
+    return isset($headers[$name]) ? $headers[$name] : NULL;
+  }
+  else {
+    return $headers;
+  }
+}
 /**
  * Generate a unique, machine-safe ID.
  *
@@ -473,4 +602,332 @@ function unique_id($string) {
   }
 
   return $id;
+}
+
+function get_us_states() {
+  return array(
+    'AL'=>"Alabama",
+    'AK'=>"Alaska",
+    'AZ'=>"Arizona",
+    'AR'=>"Arkansas",
+    'CA'=>"California",
+    'CO'=>"Colorado",
+    'CT'=>"Connecticut",
+    'DE'=>"Delaware",
+    'DC'=>"District Of Columbia",
+    'FL'=>"Florida",
+    'GA'=>"Georgia",
+    'HI'=>"Hawaii",
+    'ID'=>"Idaho",
+    'IL'=>"Illinois",
+    'IN'=>"Indiana",
+    'IA'=>"Iowa",
+    'KS'=>"Kansas",
+    'KY'=>"Kentucky",
+    'LA'=>"Louisiana",
+    'ME'=>"Maine",
+    'MD'=>"Maryland",
+    'MA'=>"Massachusetts",
+    'MI'=>"Michigan",
+    'MN'=>"Minnesota",
+    'MS'=>"Mississippi",
+    'MO'=>"Missouri",
+    'MT'=>"Montana",
+    'NE'=>"Nebraska",
+    'NV'=>"Nevada",
+    'NH'=>"New Hampshire",
+    'NJ'=>"New Jersey",
+    'NM'=>"New Mexico",
+    'NY'=>"New York",
+    'NC'=>"North Carolina",
+    'ND'=>"North Dakota",
+    'OH'=>"Ohio",
+    'OK'=>"Oklahoma",
+    'OR'=>"Oregon",
+    'PA'=>"Pennsylvania",
+    'RI'=>"Rhode Island",
+    'SC'=>"South Carolina",
+    'SD'=>"South Dakota",
+    'TN'=>"Tennessee",
+    'TX'=>"Texas",
+    'UT'=>"Utah",
+    'VT'=>"Vermont",
+    'VA'=>"Virginia",
+    'WA'=>"Washington",
+    'WV'=>"West Virginia",
+    'WI'=>"Wisconsin",
+    'WY'=>"Wyoming",
+  );
+}
+
+function get_canadian_provinces() {
+  return array(
+    "AB"=>"Alberta",
+    "BC"=>"British Columbia",
+    "MB"=>"Manitoba",
+    "NL"=>"Newfoundland and Labrador",
+    "NB"=>"New Brunswick",
+    "NT"=>"Northwest Territories",
+    "NS"=>"Nova Scotia",
+    "NU"=>"Nunavut",
+    "ON"=>"Ontario",
+    "PE"=>"Prince Edward Island",
+    "QC"=>"Quebec",
+    "SK"=>"Saskatchewan",
+    "YT"=>"Yukon Territory",
+  );
+}
+
+function get_countries() {
+  return array(
+    'AF' => 'Afghanistan',
+    'AX' => 'Aland Islands',
+    'AL' => 'Albania',
+    'DZ' => 'Algeria',
+    'AS' => 'American Samoa',
+    'AD' => 'Andorra',
+    'AO' => 'Angola',
+    'AI' => 'Anguilla',
+    'AQ' => 'Antarctica',
+    'AG' => 'Antigua and Barbuda',
+    'AR' => 'Argentina',
+    'AM' => 'Armenia',
+    'AW' => 'Aruba',
+    'AU' => 'Australia',
+    'AT' => 'Austria',
+    'AZ' => 'Azerbaijan',
+    'BS' => 'Bahamas',
+    'BH' => 'Bahrain',
+    'BD' => 'Bangladesh',
+    'BB' => 'Barbados',
+    'BY' => 'Belarus',
+    'BE' => 'Belgium',
+    'BZ' => 'Belize',
+    'BJ' => 'Benin',
+    'BM' => 'Bermuda',
+    'BT' => 'Bhutan',
+    'BO' => 'Bolivia, Plurinational State of',
+    'BQ' => 'Bonaire, Sint Eustatius and Saba',
+    'BA' => 'Bosnia and Herzegovina',
+    'BW' => 'Botswana',
+    'BV' => 'Bouvet Island',
+    'BR' => 'Brazil',
+    'IO' => 'British Indian Ocean Territory',
+    'BN' => 'Brunei Darussalam',
+    'BG' => 'Bulgaria',
+    'BF' => 'Burkina Faso',
+    'BI' => 'Burundi',
+    'KH' => 'Cambodia',
+    'CM' => 'Cameroon',
+    'CA' => 'Canada',
+    'CV' => 'Cape Verde',
+    'KY' => 'Cayman Islands',
+    'CF' => 'Central African Republic',
+    'TD' => 'Chad',
+    'CL' => 'Chile',
+    'CN' => 'China',
+    'CX' => 'Christmas Island',
+    'CC' => 'Cocos (Keeling) Islands',
+    'CO' => 'Colombia',
+    'KM' => 'Comoros',
+    'CG' => 'Congo',
+    'CD' => 'Congo, the Democratic Republic of the',
+    'CK' => 'Cook Islands',
+    'CR' => 'Costa Rica',
+    'CI' => 'Côte d\'Ivoire',
+    'HR' => 'Croatia',
+    'CU' => 'Cuba',
+    'CW' => 'Curaçao',
+    'CY' => 'Cyprus',
+    'CZ' => 'Czech Republic',
+    'DK' => 'Denmark',
+    'DJ' => 'Djibouti',
+    'DM' => 'Dominica',
+    'DO' => 'Dominican Republic',
+    'EC' => 'Ecuador',
+    'EG' => 'Egypt',
+    'SV' => 'El Salvador',
+    'GQ' => 'Equatorial Guinea',
+    'ER' => 'Eritrea',
+    'EE' => 'Estonia',
+    'ET' => 'Ethiopia',
+    'FK' => 'Falkland Islands (Malvinas)',
+    'FO' => 'Faroe Islands',
+    'FJ' => 'Fiji',
+    'FI' => 'Finland',
+    'FR' => 'France',
+    'GF' => 'French Guiana',
+    'PF' => 'French Polynesia',
+    'TF' => 'French Southern Territories',
+    'GA' => 'Gabon',
+    'GM' => 'Gambia',
+    'GE' => 'Georgia',
+    'DE' => 'Germany',
+    'GH' => 'Ghana',
+    'GI' => 'Gibraltar',
+    'GR' => 'Greece',
+    'GL' => 'Greenland',
+    'GD' => 'Grenada',
+    'GP' => 'Guadeloupe',
+    'GU' => 'Guam',
+    'GT' => 'Guatemala',
+    'GG' => 'Guernsey',
+    'GN' => 'Guinea',
+    'GW' => 'Guinea-Bissau',
+    'GY' => 'Guyana',
+    'HT' => 'Haiti',
+    'HM' => 'Heard Island and McDonald Islands',
+    'VA' => 'Holy See (Vatican City State)',
+    'HN' => 'Honduras',
+    'HK' => 'Hong Kong',
+    'HU' => 'Hungary',
+    'IS' => 'Iceland',
+    'IN' => 'India',
+    'ID' => 'Indonesia',
+    'IR' => 'Iran, Islamic Republic of',
+    'IQ' => 'Iraq',
+    'IE' => 'Ireland',
+    'IM' => 'Isle of Man',
+    'IL' => 'Israel',
+    'IT' => 'Italy',
+    'JM' => 'Jamaica',
+    'JP' => 'Japan',
+    'JE' => 'Jersey',
+    'JO' => 'Jordan',
+    'KZ' => 'Kazakhstan',
+    'KE' => 'Kenya',
+    'KI' => 'Kiribati',
+    'KP' => 'Korea, Democratic People\'s Republic of',
+    'KR' => 'Korea, Republic of',
+    'KW' => 'Kuwait',
+    'KG' => 'Kyrgyzstan',
+    'LA' => 'Lao People\'s Democratic Republic',
+    'LV' => 'Latvia',
+    'LB' => 'Lebanon',
+    'LS' => 'Lesotho',
+    'LR' => 'Liberia',
+    'LY' => 'Libya',
+    'LI' => 'Liechtenstein',
+    'LT' => 'Lithuania',
+    'LU' => 'Luxembourg',
+    'MO' => 'Macao',
+    'MK' => 'Macedonia, The Former Yugoslav Republic of',
+    'MG' => 'Madagascar',
+    'MW' => 'Malawi',
+    'MY' => 'Malaysia',
+    'MV' => 'Maldives',
+    'ML' => 'Mali',
+    'MT' => 'Malta',
+    'MH' => 'Marshall Islands',
+    'MQ' => 'Martinique',
+    'MR' => 'Mauritania',
+    'MU' => 'Mauritius',
+    'YT' => 'Mayotte',
+    'MX' => 'Mexico',
+    'FM' => 'Micronesia, Federated States of',
+    'MD' => 'Moldova, Republic of',
+    'MC' => 'Monaco',
+    'MN' => 'Mongolia',
+    'ME' => 'Montenegro',
+    'MS' => 'Montserrat',
+    'MA' => 'Morocco',
+    'MZ' => 'Mozambique',
+    'MM' => 'Myanmar',
+    'NA' => 'Namibia',
+    'NR' => 'Nauru',
+    'NP' => 'Nepal',
+    'NL' => 'Netherlands',
+    'NC' => 'New Caledonia',
+    'NZ' => 'New Zealand',
+    'NI' => 'Nicaragua',
+    'NE' => 'Niger',
+    'NG' => 'Nigeria',
+    'NU' => 'Niue',
+    'NF' => 'Norfolk Island',
+    'MP' => 'Northern Mariana Islands',
+    'NO' => 'Norway',
+    'OM' => 'Oman',
+    'PK' => 'Pakistan',
+    'PW' => 'Palau',
+    'PS' => 'Palestine, State of',
+    'PA' => 'Panama',
+    'PG' => 'Papua New Guinea',
+    'PY' => 'Paraguay',
+    'PE' => 'Peru',
+    'PH' => 'Philippines',
+    'PN' => 'Pitcairn',
+    'PL' => 'Poland',
+    'PT' => 'Portugal',
+    'PR' => 'Puerto Rico',
+    'QA' => 'Qatar',
+    'RE' => 'Réunion',
+    'RO' => 'Romania',
+    'RU' => 'Russian Federation',
+    'RW' => 'Rwanda',
+    'BL' => 'Saint Barthelemy',
+    'SH' => 'Saint Helena, Ascension and Tristan da Cunha',
+    'KN' => 'Saint Kitts and Nevis',
+    'LC' => 'Saint Lucia',
+    'MF' => 'Saint Martin (French part)',
+    'PM' => 'Saint Pierre and Miquelon',
+    'VC' => 'Saint Vincent and the Grenadines',
+    'WS' => 'Samoa',
+    'SM' => 'San Marino',
+    'ST' => 'Sao Tome and Principe',
+    'SA' => 'Saudi Arabia',
+    'SN' => 'Senegal',
+    'RS' => 'Serbia',
+    'SC' => 'Seychelles',
+    'SL' => 'Sierra Leone',
+    'SG' => 'Singapore',
+    'SX' => 'Sint Maarten (Dutch part)',
+    'SK' => 'Slovakia',
+    'SI' => 'Slovenia',
+    'SB' => 'Solomon Islands',
+    'SO' => 'Somalia',
+    'ZA' => 'South Africa',
+    'GS' => 'South Georgia and the South Sandwich Islands',
+    'SS' => 'South Sudan',
+    'ES' => 'Spain',
+    'LK' => 'Sri Lanka',
+    'SD' => 'Sudan',
+    'SR' => 'Suriname',
+    'SJ' => 'Svalbard and Jan Mayen',
+    'SZ' => 'Swaziland',
+    'SE' => 'Sweden',
+    'CH' => 'Switzerland',
+    'SY' => 'Syrian Arab Republic',
+    'TW' => 'Taiwan, Province of China',
+    'TJ' => 'Tajikistan',
+    'TZ' => 'Tanzania, United Republic of',
+    'TH' => 'Thailand',
+    'TL' => 'Timor-Leste',
+    'TG' => 'Togo',
+    'TK' => 'Tokelau',
+    'TO' => 'Tonga',
+    'TT' => 'Trinidad and Tobago',
+    'TN' => 'Tunisia',
+    'TR' => 'Turkey',
+    'TM' => 'Turkmenistan',
+    'TC' => 'Turks and Caicos Islands',
+    'TV' => 'Tuvalu',
+    'UG' => 'Uganda',
+    'UA' => 'Ukraine',
+    'AE' => 'United Arab Emirates',
+    'GB' => 'United Kingdom',
+    'US' => 'United States',
+    'UM' => 'United States Minor Outlying Islands',
+    'UY' => 'Uruguay',
+    'UZ' => 'Uzbekistan',
+    'VU' => 'Vanuatu',
+    'VE' => 'Venezuela, Bolivarian Republic of',
+    'VN' => 'Viet Nam',
+    'VG' => 'Virgin Islands, British',
+    'VI' => 'Virgin Islands, U.S.',
+    'WF' => 'Wallis and Futuna',
+    'EH' => 'Western Sahara',
+    'YE' => 'Yemen',
+    'ZM' => 'Zambia',
+    'ZW' => 'Zimbabwe',
+  );
 }

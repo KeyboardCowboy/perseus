@@ -1,6 +1,10 @@
 <div {{ html_attributes(attributes) }}>
   {% if label is not empty %}
-  <label>{{ label }}</label>
+  <label>{{ label }}
+    {% if required %}
+      <span class="red">*</span>
+    {% endif %}
+  </label>
   {% endif %}
   {{ output }}
 </div>

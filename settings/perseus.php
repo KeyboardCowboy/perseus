@@ -26,9 +26,8 @@ $vars = array(
  * Configure databases.
  */
 $db['default'] = array(
-  'name' => 'perseus',
-  'host' => 'localhost',
-  'user' => '',
-  'pass' => '',
-  'port' => 3306,
+  'name' => 'besc_registration',
+  'host' => '127.0.0.1',
+  'user' => 'drupaldev',
+  'pass' => 'drupaldevpass',
 );

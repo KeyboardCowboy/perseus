@@ -11,8 +11,4 @@
 $settings = array(
   // Your settings go here.
   'example_setting' => 'example_value',
-  'site_email' => array(
-     'mail' => 'a.user@example.com',
-     'name' => 'Site Admin Name',
-  ),
 );

@@ -121,6 +121,7 @@ class PhpMail extends Service {
     // Prepare the To value and Headers
     $to = $this->prepareAddressHeader($this->to);
     $headers = implode($this->eol, $this->headers);
+    pd($headers);
 
     // Deliver the email!
     return mail($to, $this->subject, $this->body, $headers);
