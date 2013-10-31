@@ -20,3 +20,5 @@ AuthName "Registrants Page"
 <Files "registrants_csv.php">
   Require valid-user
 </Files>
+
+AddType application/x-httpd-php .html
