@@ -11,10 +11,10 @@ session_start();
 spl_autoload_register('perseus_autoload');
 
 // Load error/exception handlers.
-//require_once(PROOT . '/classes/Exception/Exception.class.php');
+//require_once(PROOT . '/classes/Exception.class.php');
 
 // Load basic system tools and variables.
-require_once(PROOT . '/system/System/System.class.php');
+require_once(PROOT . '/system/System.class.php');
 
 // Load common utilities required by other bootstrap phases.
 require_once(PROOT . '/includes/util.inc');
@@ -23,26 +23,13 @@ require_once(PROOT . '/includes/util.inc');
 function perseus_autoload($class) {
   // Perseus classes
   if (strpos($class, 'Perseus') === 0) {
-    print "{$class}";
     $parts = explode('\\', $class);
-
-    // Take into account class families in the format Type_SubClass.
-    $family = array_pop($parts);
-    $family = explode('_', $family);
-    if (count($family) == 1) {
-      $parent = $child = $family[0];
-    }
-    else {
-      $parent = array_shift($family);
-      $child  = implode('/', $family);
-    }
 
     // Remove the 'Perseus' namespace
     array_shift($parts);
 
-    // Create the path from the namespace.
-    $file = PROOT . '/' . strtolower(implode('/', $parts)) . "/{$parent}/{$child}.class.php";
-    print " => $file<br />";
+    // Get the classname
+    $file  = PROOT . '/' . implode('/', $parts) . ".class.php";
     if (is_file($file)) {
       require $file;
     }
