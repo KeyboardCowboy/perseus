@@ -19,6 +19,9 @@ require_once(PROOT . '/system/System.class.php');
 // Load common utilities required by other bootstrap phases.
 require_once(PROOT . '/includes/util.inc');
 
+global $perseus;
+$perseus = new Perseus\System\System(dirname($_SERVER['SCRIPT_FILENAME']));
+
 // Autoloading router
 function perseus_autoload($class) {
   // Perseus classes

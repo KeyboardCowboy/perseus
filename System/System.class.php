@@ -41,7 +41,7 @@ class System {
    */
   public function __construct($siteroot) {
     $this->siteroot    = $siteroot;
-    $this->config_file = $this->siteroot . '/settings/perseus.php';
+    $this->config_file = $this->siteroot . '/settings/config.php';
 
     // Initialize subsystems
     try {
@@ -133,7 +133,7 @@ class System {
 
     // Next, site overrides
     $site_theme = $this->siteroot . '/theme';
-    if (file_exists($site_theme)) {
+    if (is_dir($site_theme)) {
       $this->themes[] = $site_theme;
       $templates[] = "{$site_theme}/templates";
     }
@@ -494,11 +494,7 @@ class System {
         $this->_render($child);
 
         // Append each child's content to the parent for inheritence.
-        //$parent->appendChildContent($child->rendered);
-        //$parent->addBuildData('_content', array($child->_key, $child->rendered), TRUE);
         $parent->addContent($child->_key, $child->_rendered);
-
-        //pd($parent);
       }
     }
 

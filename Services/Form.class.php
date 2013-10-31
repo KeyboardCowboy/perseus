@@ -170,10 +170,12 @@ class Form extends Perseus\Renderable implements FormInterface {
         break;
 
       case self::VALID:
-        System::setMessage('Submit handlers firing!');
+        $this->fields = array();
+
         // Cycle through field submittors.
         foreach ($this->items as $name => $item) {
           $item->submit();
+          $this->fields[$item->name] = $item;
         }
         return TRUE;
         break;

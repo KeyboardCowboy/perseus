@@ -16,7 +16,7 @@ abstract class Renderable {
   // Generated on render
   private $_content = array();
   private $_key;
-  public $rendered;
+  public  $_rendered;
 
   // Common properties
   public $weight;

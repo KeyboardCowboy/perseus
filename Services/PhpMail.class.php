@@ -9,7 +9,7 @@ use Perseus\System as Perseus;
 define('MAIL_FORMAT_PLAIN', 0);
 define('MAIL_FORMAT_HTML',  1);
 
-class PhpMail extends Perseus\Service {
+class PhpMail {
   private $to = array();
   private $cc = array();
   private $bcc = array();
@@ -24,9 +24,7 @@ class PhpMail extends Perseus\Service {
   /**
    * Constructor
    */
-  public function __construct($system, array $settings = array()) {
-    parent::__construct($system);
-  }
+  public function __construct() {}
 
   /**
    * Add addresses to the 'To' field.
@@ -65,14 +63,14 @@ class PhpMail extends Perseus\Service {
    * Set the subject of the message.
    */
   public function subject($string) {
-    $this->subject = check_plain($string);
+    $this->subject = strip_tags($string);
   }
 
   /**
    * Set the body of the message.
    */
   public function body($string) {
-    $this->body = filter_xss($string);
+    $this->body = $string;
   }
 
   /**

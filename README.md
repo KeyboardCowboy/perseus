@@ -15,18 +15,23 @@ Version 3 introduces the Twig theming system and PHP namespaces.
 - Twig for theming
 
 ### Structure
-- extensions
+- Extensions
   Place third party service extensions here.  **This is the only directory that
   should be altered.**
 
 - includes
   Various libraries and helper functions to assist Perseus.
 
-- services
+- Services
   Extendable tools such as MySQL connectors and PHP Mailers that Perseus
   natively implements.
 
-- system
+- settings.default
+  Copy this directory to your site root and remove the '.default' part of the
+  name.  The config.php file is for your private site configuration and the
+  settings.php is for custom site settings.  Each file has instructions inside.
+
+- System
   The core of Perseus.  These classes manage Perseus's core functionality.
 
 - test
