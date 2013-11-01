@@ -17,7 +17,7 @@ class Submit extends Form\Item {
   // Prepare the data.
   public function prepare() {
     parent::prepare();
-    $this->addBuildData('value', $this->value);
+    $this->setAttribute('value', $this->value);
   }
 
   // Validate
@@ -25,5 +25,7 @@ class Submit extends Form\Item {
     parent::validate();
   }
 
-  public function setSubmittedValue() {}
+  // Overrides Item::setValue().
+  // Leave it as is.  Don't change the value of the submit button.
+  public function setValue() {}
 }

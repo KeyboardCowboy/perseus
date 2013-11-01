@@ -5,6 +5,7 @@
 namespace Perseus\Services\Form;
 
 use Perseus\System as Perseus;
+use Perseus\Services\Form;
 
 /**
  * Form Item Interface.
@@ -37,14 +38,15 @@ abstract class Item extends Perseus\Renderable implements FormItemInterface {
   // Common properties
   public $type;
   public $name;
-  public $value;
-  public $default_value;
-  public $posted_value;
   public $placeholder;
   public $options;
   public $attributes = array('class' => array());
   public $required = FALSE;
   public $wrap = FALSE;
+
+  public $default_value;
+  public $submitted_value;
+  protected $value;
 
   // Common sibling elements
   public $label;
@@ -64,78 +66,6 @@ abstract class Item extends Perseus\Renderable implements FormItemInterface {
     $this->name = $name;
     foreach ($settings as $k => $v) {
       $this->{$k} = $v;
-    }
-  }
-
-  /**
-   * Extends Renderable::addBuildData().
-   */
-  /*public function addBuildData($key, $data, $append = FALSE) {
-    if ($this->type == 'wrapper') {
-      $field = $this->getChild('field');
-      pd($field);
-      $field->addBuildData($key, $data, $append);
-      pd($field);
-      //$this->addChild('field', $field);
-    }
-    else {
-      parent::addBuildData($key, $data, $append);
-    }
-  }*/
-
-  /**
-   * Prepare the data to be rendered.
-   */
-  public function prepare() {
-    $this->buildAttributes();
-
-    $this->addBuildData('wrap', $this->wrap);
-    $this->addBuildData('required', $this->required);
-    $this->addBuildData('attributes', $this->attributes, TRUE);
-
-    // Build the Label
-    if ($this->label) {
-      $label = new Item\Label($this->label, $this->name, $this->required);
-      $this->addChild('label', $label);
-    }
-
-    // Build the description
-    if ($this->description) {
-      $desc = new Item\Description($this->description);
-      $this->addChild('description', $desc);
-    }
-  }
-
-  /**
-   * Finalize the object before rendering.
-   *
-   * - Check for a wrapper
-   */
-  final public function finalize() {
-    // Build the wrapper
-    if ($this->wrap) {
-      // Clone the item to add it as a child to the wrapper.
-      $current_item = clone($this);
-
-      // Prevent recursive wrapping
-      $current_item->wrap = FALSE;
-      $this->wrap = FALSE;
-
-      // $this now becomes the wrapper
-      $this->addTemplate('form/item/wrapper');
-      $this->attributes = array(
-        'class' => array('form-item', "item-name-{$this->name}", "{$this->type}"),
-      );
-      $this->addBuildData('attributes', $this->attributes);
-      $this->name .= '-wrapper';
-      $this->type = 'wrapper';
-
-      // Remove all child content from the wrapper that used to belong to the
-      // field item.
-      $this->_children = array();
-
-      // Add the original $this item as a child to the wrapper
-      $this->addChild('field', $current_item);
     }
   }
 
@@ -180,7 +110,105 @@ abstract class Item extends Perseus\Renderable implements FormItemInterface {
    */
   public function submit() {
     // Let the form handle the submitting.  Extend this method into your own
-    // form items for item specific submit handling.
+    // form items for item specific submit handling if you need it.
+  }
+
+  /**
+   * Prepare the data to be rendered.
+   */
+  public function prepare() {
+    $this->buildAttributes();
+
+    $this->addBuildData('wrap', $this->wrap);
+    $this->addBuildData('required', $this->required);
+    $this->addBuildData('attributes', $this->attributes, TRUE);
+
+    // Set the value to the default value if one exists.
+    if ($this->default_value) {
+      $this->addBuildData('value', $this->default_value);
+    }
+
+    // Build the Label
+    if ($this->label) {
+      $label = new Item\Label($this->label, $this->name, $this->required);
+      $this->addChild('label', $label);
+    }
+
+    // Build the description
+    if ($this->description) {
+      $desc = new Item\Description($this->description);
+      $this->addChild('description', $desc);
+    }
+  }
+
+  /**
+   * Finalize the object before rendering.
+   *
+   * - Check for a wrapper
+   */
+  final public function finalize() {
+    // Build the wrapper
+    if ($this->wrap) {
+      // Clone the item to add it as a child to the wrapper.
+      $current_item = clone($this);
+
+      // Prevent recursive wrapping
+      $current_item->wrap = FALSE;
+      $this->wrap = FALSE;
+
+      // $this now becomes the wrapper
+      $this->addTemplate('form/item/wrapper');
+      $this->attributes = array(
+        'class' => array('form-item', "item-name-{$this->name}", "{$this->type}"),
+      );
+      if ($this->required) {
+        $this->setAttribute('class', 'required');
+      }
+      $this->addBuildData('attributes', $this->attributes);
+      $this->name .= '-wrapper';
+      $this->type = 'wrapper';
+
+      // Remove all child content from the wrapper that used to belong to the
+      // field item.
+      $this->_children = array();
+
+      // Add the original $this item as a child to the wrapper
+      $this->addChild('field', $current_item);
+    }
+  }
+
+  /**
+   * Set the value of the item to the proper value depending on the form state.
+   * This is called from Form::prepare(), which occurs before Item::prepare().
+   *
+   * This function will work for most cases, but it should be overridden for
+   * certain cases such as buttons.
+   */
+  public function setValue($form_state) {
+    switch ($form_state) {
+      case Form::UNSUBMITTED:
+      case Form::VALID:
+        $this->value = trim($this->default_value);
+        break;
+
+      case Form::UNVALIDATED:
+      case Form::INCOMPLETE:
+      case Form::INVALID:
+        $this->value = trim($this->submitted_value);
+        break;
+    }
+  }
+
+  /**
+   * Return the best possible human-readable name for a form item.
+   */
+  public function displayName() {
+    if ($this->label) {
+      return $this->label;
+    }
+    else {
+      return $this->name;
+    }
   }
 
   /**
@@ -202,10 +230,4 @@ abstract class Item extends Perseus\Renderable implements FormItemInterface {
       $this->is_valid = TRUE;
     }
   }
-
-  /**
-   * Set the value of the item to the submitted value retrieved from the form
-   * data.
-   */
-  abstract public function setSubmittedValue();
 }

@@ -17,16 +17,11 @@ class Text extends Form\Item {
   // Prepare the data.
   public function prepare() {
     parent::prepare();
-    $this->addBuildData('attributes', array('value' => $this->value), TRUE);
+    $this->setAttribute('value', $this->value);
   }
 
   // Validate the submitted data.
   public function validate() {
     parent::validate();
-  }
-
-  // Set the field value.
-  public function setSubmittedValue() {
-    $this->value = trim($this->submitted_value);
   }
 }

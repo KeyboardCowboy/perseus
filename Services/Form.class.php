@@ -194,12 +194,10 @@ class Form extends Perseus\Renderable implements FormInterface {
       'id'      => unique_id($this->name),
     ), TRUE);
 
-    // If the form did not validate, repopulate the fields with the submitted
-    // data.
-    if ($this->state < self::VALID && $this->state > self::UNSUBMITTED) {
-      foreach ($this->items as $item) {
-        $item->setSubmittedValue();
-      }
+    // Ensure the proper values are set for each form item depending on whether
+    // or not the form has successfully validated.
+    foreach ($this->items as $item) {
+      $item->setValue($this->state);
     }
   }
 

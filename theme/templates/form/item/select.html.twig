@@ -1,5 +1,7 @@
+{{ item.label }}
 <select {{ html_attributes(attributes) }}>
   {% for params in options %}
     <option {{ html_attributes(params.attributes) }}>{{ params.label }}</option>
   {% endfor %}
 </select>
+{{ item.description }}

@@ -31,8 +31,11 @@ function perseus_autoload($class) {
     // Remove the 'Perseus' namespace
     array_shift($parts);
 
+    // Check for extensions
+    $ext_class = ($parts[0] == 'Extensions' ? "/{$parts[1]}" : '');
+
     // Get the classname
-    $file  = PROOT . '/' . implode('/', $parts) . ".class.php";
+    $file  = PROOT . '/' . implode('/', $parts) . "{$ext_class}.class.php";
     if (is_file($file)) {
       require $file;
     }

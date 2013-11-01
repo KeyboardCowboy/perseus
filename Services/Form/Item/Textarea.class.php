@@ -21,9 +21,4 @@ class Textarea extends Form\Item {
     $this->addBuildData('value', $this->content, TRUE);
     parent::prepare();
   }
-
-  // Set the field value.
-  public function setSubmittedValue() {
-    $this->value = trim($this->submitted_value);
-  }
 }
