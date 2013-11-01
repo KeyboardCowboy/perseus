@@ -2,4 +2,5 @@
 theme/cache/*
 
 # Ignore 3rd party extensions
-extensions
+Extensions/*
+!Extensions/README.md
