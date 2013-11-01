@@ -40,17 +40,17 @@ abstract class Item extends Perseus\Renderable implements FormItemInterface {
   public $name;
   public $placeholder;
   public $options;
-  public $attributes = array('class' => array());
+  public $attributes = array();
   public $required = FALSE;
   public $wrap = FALSE;
+  public $label;
+  public $label_template;
+  public $description;
+  public $description_template;
 
   public $default_value;
   public $submitted_value;
   protected $value;
-
-  // Common sibling elements
-  public $label;
-  public $desc;
 
   // Whether or not the form item has been checked for validity.
   // NULL: No check needed (No post data), FALSE: Not checked, TRUE: Checked
@@ -131,12 +131,18 @@ abstract class Item extends Perseus\Renderable implements FormItemInterface {
     // Build the Label
     if ($this->label) {
       $label = new Item\Label($this->label, $this->name, $this->required);
+      if ($this->label_template) {
+        $label->addTemplate($this->label_template);
+      }
       $this->addChild('label', $label);
     }
 
     // Build the description
     if ($this->description) {
       $desc = new Item\Description($this->description);
+      if ($this->description_template) {
+        $desc->addTemplate($this->description_template);
+      }
       $this->addChild('description', $desc);
     }
   }

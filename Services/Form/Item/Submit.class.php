@@ -14,18 +14,19 @@ class Submit extends Form\Item {
     $this->addTemplate('form/item/submit');
   }
 
-  // Prepare the data.
+  // Extends Renderable::prepare().
   public function prepare() {
     parent::prepare();
     $this->setAttribute('value', $this->value);
   }
 
-  // Validate
+  // Extends Item::validate().
   public function validate() {
     parent::validate();
   }
 
   // Overrides Item::setValue().
-  // Leave it as is.  Don't change the value of the submit button.
-  public function setValue() {}
+  public function setValue() {
+    $this->value = $this->default_value;
+  }
 }

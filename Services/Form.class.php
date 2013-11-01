@@ -204,7 +204,7 @@ class Form extends Perseus\Renderable implements FormInterface {
   /**
    * Encapsulated function to validate and submit the form.
    */
-  final public function executeForm() {
+  final public function process() {
     if ($this->data) {
       $this->validate();
 
