@@ -45,13 +45,16 @@ class Perseus_CSV {
         }
         fclose($handle);
 
-        // Separate the headers
+        // Separate and format the headers
         $this->headers = array_shift($data);
+        foreach ($this->headers as &$header) {
+          $header = trim($header);
+        }
 
         // Format the data with header keys
         foreach ($data as $rid => $d) {
           foreach ($d as $hid => $val) {
-            $this->data[$rid][$this->headers[$hid]] = $val;
+            $this->data[$rid][$this->headers[$hid]] = trim($val);
           }
         }
       }
