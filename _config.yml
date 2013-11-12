@@ -1,0 +1,17 @@
+name: Site Name
+markdown: redcarpet
+pygments: true
+ga: 
+  - {id: id1, domain: domain1.com}
+js:
+  - http://codeorigin.jquery.com/jquery-1.10.2.min.js
+
+menus:
+  main:
+    - {text: Home, href: /}
+    - {text: About Us, href: /about}
+    - {text: Services, href: /services}
+    - {text: Blog, href: /blog}
+    - {text: Contact, href: /contact}
+
+ignore: ['codekit-config.json']

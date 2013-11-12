@@ -1,0 +1,20 @@
+/**
+ * Common application/niche styles.  No mixins.
+ */
+body {
+  margin: 0 auto;
+}
+
+// Font awesome helpers.
+.icon-left  {margin-right: 1em;}
+.icon-right {margin-left: 1em;}
+[class^="icon-"], [class*=" icon-"] {text-decoration: none;}
+
+// @TODO: Move lists into this sheet?
+
+// Fixed Footers
+.fixed-bottom {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+}

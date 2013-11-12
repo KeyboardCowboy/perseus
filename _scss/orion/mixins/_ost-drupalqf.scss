@@ -1,0 +1,161 @@
+// QuickFix.scss
+// Simple enhancements to common Drupal elements
+
+// -- Pager Bar
+//  - Apply to UL.pager
+//    QuickFix for a better pager.
+@mixin pager-bar($base-color) {
+  $border-color: adjust-color($base-color, $lightness: -16%);
+  $cs1: $base-color;
+  $cs2: adjust-color($base-color, $lightness: -10%);
+  $shadow: adjust-color($border-color, $lightness: -8%, $saturation: -100%);
+
+  @if lightness($base-color) < 30% {
+    $border-color: adjust-color($base-color, $lightness: 16%);
+    $cs1: adjust-color($base-color, $lightness: 10%);
+    $cs2: $base-color;
+    $shadow: adjust-color($border-color, $lightness: 8%, $saturation: -100%);
+  }
+
+  $border: 1px solid $border-color;
+
+  li {
+    display: block;
+    float: left;
+    margin: 0;
+    padding: 0;
+
+    &.pager-current {
+      @include x-box-shadow(inset 1px 1px 1px 0 $shadow);
+      @include linear-gradient(bottom, $cs1, $cs2);
+      padding: .25em .75em;
+      border: {
+        top: $border;
+        bottom: $border;
+        left: $border;
+      }
+    }
+
+    a {
+      display: block;
+      float: left;
+      @include x-box-shadow(0 1px 1px 0 $shadow);
+      @include linear-gradient(top, $cs1, $cs2);
+      padding: .25em .75em;
+      border: {
+        top: $border;
+        bottom: $border;
+        left: $border;
+      }
+    }
+
+    &.pager-current.first, &.first a, &:first-child a {
+      border-radius: 3px 0 0 3px;
+    }
+    &.pager-current.last, &.last a, &:last-child a {
+      border-radius: 0 3px 3px 0;
+      border-right: $border;
+    }
+
+    &.last a, &:last-child a {
+      @include x-box-shadow(1px 1px 1px 0 $shadow);
+    }
+
+    a:hover {
+      @include linear-gradient(bottom, $cs1, $cs2);
+    }
+    a:active {
+      @include x-box-shadow(inset 1px 1px 1px 0 $shadow);
+      @include linear-gradient(bottom, $cs1, $cs2);
+    }
+  }
+}
+
+// -- Button Series
+//  - Apply to a UL of links
+//    Turns a list of links into a series of horizonal buttons.
+@mixin link-button($base-color, $color, $size) {
+  $border:        adjust-color($base-color, $saturation: 9%, $lightness: -14%);
+  $inset-shadow:  darken($base-color, 30%);
+  $stop-gradient: adjust-color($base-color, $saturation: 8%, $lightness: -8%);
+  $text-shadow:   adjust-color($base-color, $saturation: 15%, $lightness: -18%);
+  $hover:         adjust-color($color, $saturation: 50%, $lightness: 10%);
+  $off:           adjust-color($color, $saturation: -50%);
+
+  @if lightness($base-color) > 70% {
+    $text-shadow: adjust-color($base-color, $saturation: 10%, $lightness: 4%);
+  }
+
+  @if lightness($color) > 70% {
+    $hover: adjust-color($color, $lightness: 50%);
+    $off:   adjust-color($color, $lightness: -20%);
+  }
+
+  margin: 1em 0;
+  padding: 0;
+
+  li {
+    display: inline;
+
+    a {
+      display: inline-block;
+      padding: ($size / 2) + em ($size) + em;
+      border: 1px solid $border;
+      border-radius: ($size * 3) + px;
+      font-weight: bold;
+      text-decoration: none;
+      text-transform: capitalize;
+
+      text-shadow: 1px 1px 0 $text-shadow;
+      @include x-rem(font-size, ($size * 0.85));
+
+      &:link, &:visited {
+        color: $off;
+        @include linear-gradient($base-color, $stop-gradient);
+        @include x-box-shadow(1px 1px 1px 0 rgba(0,0,0, 0.15));
+      }
+
+      &:hover {
+        color: $hover;
+        @include linear-gradient($stop-gradient, $base-color);
+      }
+      &:active, &.active {
+        color: $hover;
+        @include linear-gradient($stop-gradient, $base-color);
+        @include x-box-shadow(inset 1px 1px 1px 0 $inset-shadow);
+      }
+    }
+  }
+}
+
+// -- Messages
+//  - Apply to the messages container (i.e. '.messages')
+//    To override colors, define $status, $warning and $error.
+@mixin messages {
+  // Define default colors.
+  $status:  rgb(3, 15, 91) !default;
+  $warning: rgb(101, 73, 23) !default;
+  $error:   rgb(69, 4, 12) !default;
+
+  border: 2px solid;
+  padding: 1em 1em 1em 3em;
+  border-radius: .25em;
+  box-shadow: 2px 2px 1px 0 rgba(0,0,0,.25);
+  margin: 1em 0;
+
+  &.status  {
+    color: $status;
+    border-color: $status;
+    background: lighten($status, 78%) url('../images/ok.png') 10px .75em no-repeat;
+  }
+  &.warning {
+    color: $warning;
+    border-color: $warning;
+    background: lighten($warning, 70%) url('../images/warning.png') 10px .75em no-repeat;
+  }
+  &.error   {
+    color: $error;
+    border-color: $error;
+    background: lighten($error, 80%) url('../images/error.png') 10px .75em no-repeat;
+  }
+}

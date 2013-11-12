@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="MobileOptimized" content="width" />
+    <meta name="HandheldFriendly" content="true" />
+
+    <title>{{ page.title }} | {{ site.name }}</title>
+    {% for file in site.css %}<link type="text/css" rel="stylesheet" href="{{ file }}" />{% endfor %}
+    {% for file in page.css %}<link type="text/css" rel="stylesheet" href="{{ file }}" />{% endfor %}
+    {% for file in site.js.lib %}<script type="text/javascript" src="{{ file }}"></script>{% endfor %}
+    {% for file in page.js.lib %}<script type="text/javascript" src="{{ file }}"></script>{% endfor %}
+    {% for file in site.js.local %}<script type="text/javascript" src="{{ file }}"></script>{% endfor %}
+    {% for file in page.js.local %}<script type="text/javascript" src="{{ file }}"></script>{% endfor %}
+  </head>
+  <body class="{{ page.classes.body }}">
+    <header id="site-header"></header>
+    <div id="main">

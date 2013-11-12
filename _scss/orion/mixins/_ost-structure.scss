@@ -1,0 +1,47 @@
+// Structural Components
+// Various components to aid in CSS framework and structure.
+
+// -- Inline Menu List
+//  - Apply to UL
+//    Setup an inline-menu with border separators.
+@mixin inline-menu($spacing, $color) {
+  li {
+    display: inline-block;
+
+    a {
+      display: inline-block;
+      padding: 0 $spacing 0 $spacing;
+      margin-right: -5px;
+      border-right: 1px solid $color;
+    }
+
+    &.last a {border-right: none;}
+  }
+}
+
+// -- Inline Columns
+//  - Apply to a common selector (ie. .cols)
+//    Arrange block elements into equal columns.
+@mixin cols($num) {
+  display: inline-block;
+  width: floor(100%/$num);
+  margin: 0;
+  padding: 0;
+  vertical-align: top;
+  margin-right: -5px;
+}
+
+// -- Divided vertical lists
+//  - Apply to a repeating selector (ie. div.views-row)
+//    Separate a vertical list of elements with a border
+@mixin list-divider($dist, $color, $bottom: false) {
+  margin-bottom: $dist;
+  padding-bottom: $dist;
+  border-bottom: 1px solid $color;
+
+  @if $bottom == false {
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
