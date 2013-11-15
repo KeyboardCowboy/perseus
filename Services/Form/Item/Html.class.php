@@ -3,23 +3,23 @@ namespace Perseus\Services\Form\Item;
 use Perseus\Services\Form;
 
 /**
- * Textarea Field.
+ * Form item descriptions.
  */
-class Textarea extends Form\Item {
-  // Set some defaults
-  public $rows = 5;
+class Html extends Form\Item {
+  public $attributes = array();
 
   // Constructor
   public function __construct($name, $settings = array()) {
     parent::__construct($name, $settings);
-    $this->addTemplate('form/item/textarea');
+
+    $this->type = 'html';
+    $this->addTemplate('form/item/html');
+
   }
 
   // Prepare the data.
   public function prepare() {
-    $this->setAttribute('rows', $this->rows);
-    $this->addBuildData('value', $this->value, FALSE);
     parent::prepare();
+    $this->addBuildData('html', $this->html);
   }
-
 }

@@ -26,7 +26,7 @@ class Submit extends Form\Item {
   }
 
   // Overrides Item::setValue().
-  public function setValue() {
+  public function setValue($form_state) {
     $this->value = $this->default_value;
   }
 }

@@ -1,0 +1,10 @@
+{{ item.label }}
+{% for group, radio in radios %}
+  <div class="group group{{ group }}">
+    {% for options in radio %}
+    <input type="radio" id="{{ options.attributes.name }}{{ options.attributes.value }}" {{ html_attributes(options.attributes) }} />
+    <label for="{{ options.attributes.name }}{{ options.attributes.value }}">{{ options.label }}</label>
+    {% endfor %}
+  </div>
+{% endfor %}
+{{ item.description }}

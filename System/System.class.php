@@ -323,20 +323,32 @@ class System {
     }
 
     // Prepare the data
-    $data = array(
-      "event = '{$name}'",
-      "identifier = '{$identifier}'",
-      "timestamp > " . (time() - $window),
+    $conditions = array(
+      array(
+        'field' => 'event',
+        'condition' => '=',
+        'value' => $name,
+      ),
+      array(
+        'field' => 'identifier',
+        'condition' => '=',
+        'value' => $identifier,
+      ),
+      array(
+        'field' => 'timestamp',
+        'condition' => '>',
+        'value' => time() - $window,
+      ),
     );
 
     // Requires a MySQL connection.
     try {
       $sql = $this->db();
-      $res = $sql->select('flood', array('COUNT(*) as count'), $data);
+      $res = $sql->select('flood', array('COUNT(*) as count'), $conditions);
     }
     catch (Exception $e) {$this->handleException($e);}
 
-    return (isset($res) && ($res[0]->count < $threshold));
+    return (isset($res[0]['count']) && ($res[0]['count'] < $threshold));
   }
 
   /**
@@ -391,6 +403,13 @@ class System {
       }
     }
     catch (Exception $e) {$this->handleException($e);}
+  }
+
+  /**
+   * Set an instance of the database object.
+   */
+  public function setDb($db, $db_instance = 'default') {
+    $this->db[$db_instance] = $db;
   }
 
   /**
@@ -514,6 +533,7 @@ class SystemInstaller extends Installer implements InstallerInterface {
    * Constructor
    */
   public function __construct($system) {
+
     parent::__construct($system);
   }
 
@@ -528,7 +548,7 @@ class SystemInstaller extends Installer implements InstallerInterface {
         $do = $this->install;
       }
 
-      // Run each installation procedure.
+     // Run each installation procedure.
       foreach ($do as $install) {
         switch ($install) {
           case 'flood':
@@ -551,8 +571,7 @@ class SystemInstaller extends Installer implements InstallerInterface {
       timestamp int(11) NOT NULL DEFAULT '0' COMMENT 'Timestamp of the event.',
       expiration int(11) NOT NULL DEFAULT '0' COMMENT 'Expiration timestamp. Expired events are purged on cron run.',
       PRIMARY KEY (fid),
-      KEY allow (event,identifier,timestamp),
-      KEY purge (expiration)
+      KEY allow (event,identifier,timestamp)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Flood controls the threshold of events, such as the...' AUTO_INCREMENT=1 ;";
 
     return (isset($schema[$table]) ? $schema[$table] : '');

@@ -145,7 +145,7 @@ class PhpMail {
         }
       }
       else {
-        System::setMessage("Invalid e-mail address '$email'.", SYSTEM_ERROR);
+        Perseus\System::setMessage("Invalid e-mail address '$email'.", SYSTEM_ERROR);
       }
     }
   }
