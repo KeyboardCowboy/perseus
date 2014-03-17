@@ -23,7 +23,7 @@ class CSV {
 
   // Constructor
   public function __construct($system, array $settings = array()) {
-    parent::__construct($system);
+    //parent::__construct($system);
 
     $this->filepath = (isset($settings['filepath']) ? $settings['filepath'] : '');
 
@@ -38,7 +38,7 @@ class CSV {
     try {
       // Make sure we have a file
       if (!file_exists($this->filepath)) {
-        throw new Exception('Unable to locate csv data file.', SYSTEM_ERROR);
+        throw new \Perseus\System\Exception('Unable to locate csv data file.', SYSTEM_ERROR);
       }
 
       // Read the file
