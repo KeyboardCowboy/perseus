@@ -43,6 +43,7 @@ abstract class Item extends Perseus\Renderable implements FormItemInterface {
   public $attributes = array();
   public $required = FALSE;
   public $wrap = FALSE;
+
   public $label;
   public $label_template;
   public $description;
@@ -55,6 +56,12 @@ abstract class Item extends Perseus\Renderable implements FormItemInterface {
   // Whether or not the form item has been checked for validity.
   // NULL: No check needed (No post data), FALSE: Not checked, TRUE: Checked
   public $validated;
+
+  // Whether or not to apply xss filtering to the submitted value.
+  public $filter_xss = FALSE;
+  // Which tags are allowed in xss filtering - default is none. Only used if
+  // filter_xss is TRUE;
+  public $filter_xss_allowed_tags = array();
 
   // Whether the field passed validation.
   private $is_valid;
@@ -69,7 +76,7 @@ abstract class Item extends Perseus\Renderable implements FormItemInterface {
     }
   }
 
-  /**
+/**
    * Add the common elements to the attributes array.
    */
   public function buildAttributes() {
@@ -236,4 +243,5 @@ abstract class Item extends Perseus\Renderable implements FormItemInterface {
       $this->is_valid = TRUE;
     }
   }
+
 }

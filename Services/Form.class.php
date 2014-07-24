@@ -43,7 +43,7 @@ class Form extends Perseus\Renderable implements FormInterface {
   const INVALID     = 3;
   const VALID       = 4;
 
-  private $state = self::UNSUBMITTED;
+  protected $state = self::UNSUBMITTED;
 
   // Submitted Data
   protected $data;
@@ -70,7 +70,7 @@ class Form extends Perseus\Renderable implements FormInterface {
 
     // Define the settings.
     $this->name    = (isset($settings['name']) ? $settings['name'] : uniqid());
-    $this->action  = (isset($settings['action']) ? filter_xss($action) : filter_xss($_SERVER['PHP_SELF']));
+    $this->action  = (isset($settings['action']) ? filter_xss($settings['action']) : filter_xss($_SERVER['PHP_SELF']));
     $this->method  = (isset($settings['method']) ? $settings['method'] : 'POST');
     $this->enctype = (isset($settings['enctype']) ? $settings['enctype'] : 'multipart/form-data');
 
@@ -95,6 +95,13 @@ class Form extends Perseus\Renderable implements FormInterface {
       $this->data = $_GET;
     }
 
+    // Strip slashes that may have been added by magic quotes.
+    if (get_magic_quotes_gpc()) {
+      foreach ($this->data as $k => $v) {
+        $this->data[$k] = stripslashes($v);
+      }
+    }
+    
     // If we found submitted data, validate the form.
     if ($this->data) {
       $this->state = self::INCOMPLETE;
@@ -104,7 +111,7 @@ class Form extends Perseus\Renderable implements FormInterface {
   /**
    * Add a form item to the form.
    */
-  public function addChild($key, Form\Item $item) {
+  public function addChild($key, Perseus\Renderable $item) {
     // @TODO: Validate each field as it is added to the form.  The form will
     // pick up an submitted data on instantiaion. This way we don't have to rely
     // on the child classes to call the validation method.

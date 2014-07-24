@@ -24,4 +24,5 @@ class Text extends Form\Item {
   public function validate() {
     parent::validate();
   }
+
 }

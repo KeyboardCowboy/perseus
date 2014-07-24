@@ -14,7 +14,7 @@ spl_autoload_register('perseus_autoload');
 //require_once(PROOT . '/classes/Exception.class.php');
 
 // Load basic system tools and variables.
-require_once(PROOT . '/system/System.class.php');
+require_once(PROOT . '/System/System.class.php');
 
 // Load common utilities required by other bootstrap phases.
 require_once(PROOT . '/includes/util.inc');
